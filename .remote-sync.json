@@ -1,0 +1,13 @@
+{
+  "transport": "scp",
+  "uploadOnSave": false,
+  "hostname": "107.170.5.123",
+  "port": "22",
+  "target": "/home/kirik/omertest/",
+  "ignore": [
+    ".remote-sync.json",
+    ".git/**"
+  ],
+  "username": "kirik",
+  "password": "topsecret"
+}

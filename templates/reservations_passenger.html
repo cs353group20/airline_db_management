@@ -1,0 +1,134 @@
+{% extends "passenger_base.html" %} {% block title %}Reservations{% endblock %} {% block css %}
+<link rel="stylesheet" href="/static/assets/examples/css/forms/layouts.css">
+<link rel="stylesheet" href="/static/assets/examples/css/uikit/modals.css">
+  <link rel="stylesheet" href="/static/global/vendor/alertify-js/alertify.css">
+  <link rel="stylesheet" href="/static/assets/examples/css/advanced/alertify.css">
+<link rel="stylesheet" href="/static/assets/examples/css/uikit/icon.css"> {% endblock %} {% block content %}
+<div class="page">
+<div class="page-header">
+    <h1 class="page-title"> Reservations </h1>
+</div>
+<div class="page-content">
+    <div class="panel">
+        <div class="panel-body container-fluid">
+            <table class="table table-bordered">
+                <thead>
+                    <tr>
+                        <th>Flight ID</th>
+                        <th>Date</th>
+                        <th>Departure Time</th>
+                        <th>ETA*</th>
+                        <th>From</th>
+                        <th>To</th>
+                        <th>Duration(hr)</th>
+                        <th>Class</th>
+                        <th>Price(TL)</th>
+                        <th class="text-nowrap">Action</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <tr>
+                        <td>123123123123</td>
+                        <td>May 15, 2015</td>
+                        <td>15:25</td>
+                        <td>15:15</td>
+                        <td>Ankara
+                            <br>
+                        </td>
+                        <td>Istanbul</td>
+                        <td>1</td>
+                        <td>Business</td>
+                        <td>31</td>
+                        <td class="text-nowrap">
+                            <span data-toggle="modal" data-target="#buyModal">
+                                <button type="button" class="btn btn-sm btn-icon btn-flat btn-default" data-toggle="tooltip" data-original-title="Buy">
+                                    <i class="icon fa-credit-card" aria-hidden="true"></i>
+                                </button>
+                            </span>
+                            <button type="button" class="btn btn-sm btn-icon btn-flat btn-default" id="confirm" data-plugin="alertify"
+                            data-type="confirm" data-confirm-title="This is a confirm dialog"
+                            data-success-message="Flight succesfully cancelled!" data-error-message="Action cancelled!">
+                                <i class="icon wb-close" aria-hidden="true"></i>
+                            </button>
+                        </td>
+                    </tr>
+                    <tr>
+                        <td>123123123123
+                            <br>123123</td>
+                        <td>May 15, 2015
+                            <br> May 16, 2015</td>
+                        <td>15:25
+                            <br> 20:20</td>
+                        <td>15:15
+                            <br> 30:40</td>
+                        <td>Ankara
+                            <br>Istanbul</td>
+                        <td>Istanbul
+                            <br>San Fransisco</td>
+                        <td>1123</td>
+                        <td>Business
+                            <br> Economic</td>
+                        <td>31</td>
+                        <td class="text-nowrap">
+                            <span data-toggle="modal" data-target="#buyModal">
+                                <button type="button" class="btn btn-sm btn-icon btn-flat btn-default" data-toggle="tooltip" data-original-title="Buy">
+                                    <i class="icon fa-credit-card" aria-hidden="true"></i>
+                                </button>
+                            </span>
+                            <button type="button" class="btn btn-sm btn-icon btn-flat btn-default" id="confirm" data-plugin="alertify"
+                            data-type="confirm" data-confirm-title="This is a confirm dialog"
+                            data-success-message="Flight succesfully cancelled!" data-error-message="Action cancelled!">
+                                <i class="icon wb-close" aria-hidden="true"></i>
+                            </button>
+                        </td>
+                    </tr>
+                </tbody>
+            </table>
+        </div>
+    </div>
+</div>
+<div class="modal fade" id="buyModal" aria-hidden="true" aria-labelledby="buyModal" role="dialog" tabindex="-1">
+    <div class="modal-dialog modal-center">
+        <div class="modal-content">
+            <div class="modal-header">
+                <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                    <span aria-hidden="true">×</span>
+                </button>
+                <h4 class="modal-title">Buy Ticket For</h4>
+            </div>
+            <form class="form-horizontal">
+            <div class="modal-body">
+                <p>The fee is 500 TALA<p>
+                    <div class="form-group">
+                      <label class="col-sm-3 control-label">Credit Card Number: </label>
+                      <div class="col-sm-9">
+                        <input type="text" class="form-control" name="card_number" placeholder="Credit Card Number" autocomplete="off"/>
+                      </div>
+                    </div>
+                    <div class="form-group">
+                      <label class="col-sm-3 control-label">Card Owner Name:</label>
+                      <div class="col-sm-9">
+                        <input type="text" class="form-control" name="owner_name" placeholder="Owner Name" autocomplete="off"/>
+                      </div>
+                    </div>
+                    <div class="form-group">
+                      <label class="col-sm-3 control-label">Security Number: </label>
+                      <div class="col-sm-9">
+                        <input type="text" class="form-control" name="ccv" placeholder="CCV" autocomplete="off"/>
+                      </div>
+                    </div>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-default" data-dismiss="modal">Cancel</button>
+                <button type="button" class="btn btn-primary">Purchase</button>
+            </div>
+        </form>
+        </div>
+    </div>
+</div>
+</div>
+{% endblock %}
+{% block js %}
+<script src="/static/global/vendor/alertify-js/alertify.js"></script>
+<script src="/static/global/js/components/alertify-js.js"></script>
+{% endblock %}

@@ -1,0 +1,45 @@
+{% extends "passenger_base.html" %} {% block title %}Stores{% endblock %} {% block css %}
+<link rel="stylesheet" href="/static/assets/examples/css/forms/layouts.css">
+<link rel="stylesheet" href="/static/assets/examples/css/uikit/modals.css">
+<link rel="stylesheet" href="/static/assets/examples/css/uikit/icon.css"> {% endblock %} {% block content %}
+<div class="page-content">
+    <div class="row padding-vertical-30">
+        <div class="col-sm-12 text-center">
+            <h2>Search Airport Stores</h2>
+            <form role="search">
+                <div class="input-search">
+                    <input type="text" class="form-control round" placeholder="Airport Name">
+                </div>
+                <button type="button" class="btn btn-primary">Search</button>
+            </form>
+        </div>
+    </div>
+    <div class="panel">
+        <div class="panel-body container-fluid">
+            <table class="table table-bordered">
+                <thead>
+                    <tr>
+                        <th>Airport</th>
+                        <th>Store Name</th>
+                        <th>Owner</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <tr>
+                        <td>Oturan BOGA</td>
+                        <td>Edunun ANASI</td>
+                        <td>Trisha Elric</td>
+                    </tr>
+                    <tr>
+                        <td>SIGIN KASLI KOLU</td>
+                        <td>McCurtis' Butcher Shop</td>
+                        <td>Sig Curtis</td>
+                    </tr>
+                </tbody>
+            </table>
+        </div>
+    </div>
+</div>
+{% endblock %}
+{% block js %}
+{% endblock %}

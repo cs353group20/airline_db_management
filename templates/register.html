@@ -1,89 +1,169 @@
 <!DOCTYPE html>
-<html lang="en">
-
+<html class="no-js css-menubar" lang="en">
 <head>
-    <!-- Latest compiled and minified CSS -->
-    <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.4/css/bootstrap.min.css">
-    <!-- Latest compiled and minified JavaScript -->
-    <script src="http://code.jquery.com/jquery-1.11.3.min.js"></script>
-    <script src="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.4/js/bootstrap.min.js"></script>
-    <title> Airline DB Management System </title>
+  <meta charset="utf-8">
+  <meta http-equiv="X-UA-Compatible" content="IE=edge">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=0, minimal-ui">
+  <meta name="description" content="bootstrap admin template">
+  <meta name="author" content="">
+  <title>Register | Airline DB Management System</title>
+  <link rel="apple-touch-icon" href="/static/assets/images/apple-touch-icon.png">
+  <link rel="shortcut icon" href="/static/assets/images/favicon.ico">
+  <!-- Stylesheets -->
+  <link rel="stylesheet" href="/static/global/css/bootstrap.min.css">
+  <link rel="stylesheet" href="/static/global/css/bootstrap-extend.min.css">
+  <link rel="stylesheet" href="/static/assets/css/site.min.css">
+  <!-- Plugins -->
+  <link rel="stylesheet" href="/static/global/vendor/animsition/animsition.css">
+  <link rel="stylesheet" href="/static/global/vendor/asscrollable/asScrollable.css">
+  <link rel="stylesheet" href="/static/global/vendor/switchery/switchery.css">
+  <link rel="stylesheet" href="/static/global/vendor/intro-js/introjs.css">
+  <link rel="stylesheet" href="/static/global/vendor/slidepanel/slidePanel.css">
+  <link rel="stylesheet" href="/static/global/vendor/flag-icon-css/flag-icon.css">
+  <link rel="stylesheet" href="/static/assets/examples/css/pages/register.css">
+  <link rel="stylesheet" href="/static/assets/examples/css/forms/validation.css">
+  <link rel="stylesheet" href="/static/global/vendor/toastr/toastr.css">
+  <link rel="stylesheet" href="/static/assets/examples/css/advanced/toastr.css">
+  <!-- Fonts -->
+  <link rel="stylesheet" href="/static/global/fonts/web-icons/web-icons.min.css">
+  <link rel="stylesheet" href="/static/global/fonts/brand-icons/brand-icons.min.css">
+  <link rel='stylesheet' href='http://fonts.googleapis.com/css?family=Roboto:300,400,500,300italic'>
+  <!--[if lt IE 9]>
+    <script src="/static/global/vendor/html5shiv/html5shiv.min.js"></script>
+    <![endif]-->
+  <!--[if lt IE 10]>
+    <script src="/static/global/vendor/media-match/media.match.min.js"></script>
+    <script src="/static/global/vendor/respond/respond.min.js"></script>
+    <![endif]-->
+  <!-- Scripts -->
+  <script src="/static/global/vendor/modernizr/modernizr.js"></script>
+  <script src="/static/global/vendor/breakpoints/breakpoints.js"></script>
+  <script>
+  Breakpoints();
+  </script>
 </head>
-
-<body>
-    <div class="container">
-        <div class="row">
-            </br></br>
-            <h2> <p class = "text-center"> Sign up Form </p></h2>
-            </br></br>
+<body class="page-register layout-full page-dark">
+  <!--[if lt IE 8]>
+        <p class="browserupgrade">You are using an <strong>outdated</strong> browser. Please <a href="http://browsehappy.com/">upgrade your browser</a> to improve your experience.</p>
+    <![endif]-->
+  <!-- Page -->
+  <div class="page animsition vertical-align text-center" data-animsition-in="fade-in"
+  data-animsition-out="fade-out">
+    <div class="page-content vertical-align-middle">
+      <div class="brand">
+        <img class="brand-img" src="/static/assets//images/logo.png" alt="...">
+        <h2 class="brand-text">Airline DB Management System</h2>
+      </div>
+      <p>Sign up to buy from best prices avaible</p>
+      <form method="post" action="/signup" role="form">
+        <div class="form-group">
+          <label class="sr-only" for="inputName">Name</label>
+          <input type="text" class="form-control" id="inputName" name="name" placeholder="Name" required="">
         </div>
-        <div class="row jumbotron">
-            <form class="form-horizontal" method="post" action="/signup">
-                <div class="form-group">
-                    <label for="email" class="col-sm-2 control-label">Email*</label>
-                    <div class="col-sm-10">
-                        <input type="email" class="form-control" id="email" placeholder="Email">
-                    </div>
-                </div>
-                <div class="form-group">
-                    <label for="password" class="col-sm-2 control-label">Password*</label>
-                    <div class="col-sm-10">
-                        <input type="password" class="form-control" id="password" placeholder="Password">
-                    </div>
-                </div>
-                <div class="form-group">
-                    <label for="password_again" class="col-sm-2 control-label">Password again*</label>
-                    <div class="col-sm-10">
-                        <input type="password" class="form-control" id="password_again" placeholder="Password">
-                    </div>
-                </div>
-                <div class="form-group">
-                    <label for="name" class="col-sm-2 control-label">Name*</label>
-                    <div class="col-sm-10">
-                        <input type="text" class="form-control" id="name" placeholder="Password">
-                    </div>
-                </div>
-                <div class="form-group">
-                    <label for="street_number" class="col-sm-2 control-label">Street Number*</label>
-                    <div class="col-sm-10">
-                        <input type="text" class="form-control" id="street_number" placeholder="Password">
-                    </div>
-                </div>
-                <div class="form-group">
-                    <label for="street" class="col-sm-2 control-label">Street*</label>
-                    <div class="col-sm-10">
-                        <input type="text" class="form-control" id="street" placeholder="Password">
-                    </div>
-                </div>
-                <div class="form-group">
-                    <label for="town" class="col-sm-2 control-label">Town*</label>
-                    <div class="col-sm-10">
-                        <input type="text" class="form-control" id="town" placeholder="Password">
-                    </div>
-                </div>
-                <div class="form-group">
-                    <label for="city" class="col-sm-2 control-label">City*</label>
-                    <div class="col-sm-10">
-                        <input type="text" class="form-control" id="city" placeholder="Password">
-                    </div>
-                </div>
-                <div class="form-group">
-                    <label for="phone" class="col-sm-2 control-label">Phone*</label>
-                    <div class="col-sm-10">
-                        <input type="text" class="form-control" id="phone" placeholder="Password">
-                    </div>
-                </div>
-                <div class="form-group">
-                    <div class="col-sm-offset-2 col-sm-5">
-                        <button type="submit" class="btn btn-lg btn-primary btn-block">Sign up</button>
-                    </div>
-                    <div class="col-sm-offset-0 col-sm-5">
-                        <a href="./login" class="btn btn-default btn-lg btn-block" role="button">Login</a>
-                    </div>
-                </div>
-            </form>
+        <div class="form-group">
+          <label class="sr-only" for="inputEmail">Email</label>
+          <input type="email" class="form-control" id="inputEmail" name="email" placeholder="Email" required="">
         </div>
+        <div class="form-group">
+          <label class="sr-only" for="inputPassword">Password</label>
+          <input type="password" class="form-control" id="inputPassword" name="password" required=""
+          placeholder="Password">
+        </div>
+        <div class="form-group">
+          <label class="sr-only" for="inputPasswordCheck">Retype Password</label>
+          <input type="password" class="form-control" id="inputPasswordCheck" name="passwordCheck" required=""
+          placeholder="Confirm Password">
+        </div>
+        <div class="form-group">
+          <label class="sr-only" for="inputStreetNumber">Street Number</label>
+          <input type="text" class="form-control" id="inputStreetNumber" name="street_number" placeholder="Street Number" required="">
+        </div>
+        <div class="form-group">
+          <label class="sr-only" for="inputStreet">Street</label>
+          <input type="text" class="form-control" id="inputStreet" name="street" placeholder="Street" required="">
+        </div>
+        <div class="form-group">
+          <label class="sr-only" for="inputTown">Town</label>
+          <input type="text" class="form-control" id="inputTown" name="town" placeholder="Town" required="">
+        </div>
+        <div class="form-group">
+          <label class="sr-only" for="inputCity">City</label>
+          <input type="text" class="form-control" id="inputCity" name="city" placeholder="City" required="">
+        </div>
+        <div class="form-group">
+          <label class="sr-only" for="inputPhone">Phone</label>
+          <input type="text" class="form-control" id="inputPhone" name="phone" placeholder="Phone" required="">
+        </div>
+        <button type="submit" class="btn btn-primary btn-block">Register</button>
+      </form>
+      <p>Have account already? Please go to <a href="/login">Sign In</a></p>
+      <footer class="page-copyright page-copyright-inverse">
+        <p>WEBSITE BY cs353-group20</p>
+        <p>© 2016. All RIGHT RESERVED.</p>
+      </footer>
     </div>
+  </div>
+  <!-- End Page -->
+  <!-- Core  -->
+  <script src="/static/global/vendor/jquery/jquery.js"></script>
+  <script src="/static/global/vendor/bootstrap/bootstrap.js"></script>
+  <script src="/static/global/vendor/animsition/animsition.js"></script>
+  <script src="/static/global/vendor/asscroll/jquery-asScroll.js"></script>
+  <script src="/static/global/vendor/mousewheel/jquery.mousewheel.js"></script>
+  <script src="/static/global/vendor/asscrollable/jquery.asScrollable.all.js"></script>
+  <script src="/static/global/vendor/ashoverscroll/jquery-asHoverScroll.js"></script>
+  <!-- Plugins -->
+  <script src="/static/global/vendor/switchery/switchery.min.js"></script>
+  <script src="/static/global/vendor/intro-js/intro.js"></script>
+  <script src="/static/global/vendor/screenfull/screenfull.js"></script>
+  <script src="/static/global/vendor/slidepanel/jquery-slidePanel.js"></script>
+  <script src="/static/global/vendor/jquery-placeholder/jquery.placeholder.js"></script>
+  <!-- Scripts -->
+  <script src="/static/global/js/core.js"></script>
+  <script src="/static/assets/js/site.js"></script>
+  <script src="/static/assets/js/sections/menu.js"></script>
+  <script src="/static/assets/js/sections/menubar.js"></script>
+  <script src="/static/assets/js/sections/sidebar.js"></script>
+  <script src="/static/global/js/configs/config-colors.js"></script>
+  <script src="/static/assets/js/configs/config-tour.js"></script>
+  <script src="/static/global/js/components/asscrollable.js"></script>
+  <script src="/static/global/js/components/animsition.js"></script>
+  <script src="/static/global/js/components/slidepanel.js"></script>
+  <script src="/static/global/js/components/switchery.js"></script>
+  <script src="/static/global/js/components/jquery-placeholder.js"></script>
+  <script src="/static/global/js/components/animate-list.js"></script>
+  <script src="/static/global/vendor/formvalidation/formValidation.min.js"></script>
+  <script src="/static/global/vendor/formvalidation/framework/bootstrap.min.js"></script>
+  <script src="/static/global/vendor/toastr/toastr.js"></script>
+  <script src="/static/global/js/components/toastr.js"></script>
+  <script>
+  (function(document, window, $) {
+    'use strict';
+    var Site = window.Site;
+    $(document).ready(function() {
+      Site.run();
+      toastr.options = {
+       "closeButton": true,
+       "debug": false,
+       "newestOnTop": false,
+       "progressBar": false,
+       "positionClass": "toast-top-full-width",
+       "preventDuplicates": false,
+       "onclick": null,
+       "showDuration": "300",
+       "hideDuration": "1000",
+       "timeOut": "5000",
+       "extendedTimeOut": "1000",
+       "showEasing": "swing",
+       "hideEasing": "linear",
+       "showMethod": "fadeIn",
+       "hideMethod": "fadeOut"
+     }
+        {% if message %}
+            toastr.{{message.type}}("{{message.str}}")
+        {% endif %}
+    });
+  })(document, window, jQuery);
+  </script>
 </body>
-
 </html>

@@ -1,0 +1,54 @@
+{% extends "layout.html" %} {% block title %}Flight History{% endblock %} {% block css %}
+<link rel="stylesheet" href="/static/assets/examples/css/forms/layouts.css">
+<link rel="stylesheet" href="/static/assets/examples/css/uikit/modals.css">
+<link rel="stylesheet" href="/static/assets/examples/css/uikit/icon.css"> {% endblock %} {% block content %}
+<div class="page">
+<div class="page-header">
+    <h1 class="page-title"> Flight History </h1>
+</div>
+<div class="page-content">
+    <div class="panel" id="tablePanel">
+        <div class="panel-body container-fluid" id="tablePanelInner">
+
+            <table class="table table-bordered">
+            <thead>
+                <tr>
+                    <th>Flight ID</th>
+                    <th>Date</th>
+                    <th>Arrival</th>
+                    <th>Duration(hr)</th>
+                    <th>Arrival City</th>
+                    <th>Arrival Country</th>
+                    <th class="text-nowrap">Action</th>
+                </tr>
+            </thead>
+            <tbody id = "tableBody">
+                {% for entry in data %}
+                <tr>
+                    <td>{{entry.flight_id}}</td>
+                    <td>{{entry.date}}</td>
+                    <td>{{entry.arrival}}</td>
+                    <td>{{entry.duration}}</td>
+                    <td>{{entry.arr_city_name}}</td>
+                    <td>{{entry.arr_country_name}}</td>
+                    <td class="text-nowrap">
+                        <form method="POST" action="/admin/scheduled">
+                        <input type="hidden" id="demFlightID" name="flight_id" value="{{entry.flight_id}}">
+                        <button type="submit" class="markButton btn btn-sm btn-icon btn-flat btn-default" data-toggle="tooltip" data-original-title="Mark as Landed">
+                            <i class="icon fa-road" aria-hidden="true"></i>
+                        </button>
+                    </form>
+                    </td>
+                </tr>
+                {% endfor %}
+        </tbody>
+    </table>
+        </div>
+    </div>
+</div>
+</div>
+{% endblock %}
+{% block js %}
+{% endblock %}
+{% block jquery %}
+{% endblock %}

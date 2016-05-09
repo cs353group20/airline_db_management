@@ -1,4 +1,7 @@
 import mysql.connector
+from mysql.connector.errors import Error
+import datetime
+import time
 
 class database:
     def __init__(self, db):
@@ -10,7 +13,6 @@ class database:
         self.db.close()
 
     def check_login(self, userid, password):
-        return True
         cursor = self.db.cursor()
         cursor.execute("SELECT * FROM person WHERE person_id='{}' and password='{}'".format(userid, password))
         data = cursor.fetchone()
@@ -19,9 +21,8 @@ class database:
         return True
 
     def get_user_type(self, userid):
-        return "passenger"
         cursor = self.db.cursor()
-        if userid == 0:
+        if userid == 1:
             return "admin"
 
         cursor.execute("SELECT * FROM passenger WHERE pass_id='{}'".format(userid))
@@ -64,6 +65,7 @@ class database:
         cursor.execute("INSERT INTO person_email(person_id, email)"
             " VALUES('{}', '{}')".format(data[0], email))
         self.db.commit()
+        return data[0]
 
     def display_direct_flights(self, source, dest):
         cursor = self.db.cursor()
@@ -83,10 +85,10 @@ class database:
             list.append(dict)
         return list
 
-    def add_reservation(self, pass_id, flight_id, deadline):
+    def add_reservation(self, pass_id, flight_id, deadline, seat_no):
         cursor = self.db.cursor()
-        cursor.execute("INSERT INTO reservation(pass_id, flight_id, deadline)"
-                   " VALUES('{}', '{}', '{}')".format(pass_id, flight_id, deadline))
+        cursor.execute("INSERT INTO reservation(pass_id, flight_id, deadline, seat_no)"
+                   " VALUES('{}', '{}', '{}', '{}')".format(pass_id, flight_id, deadline, seat_no))
         self.db.commit()
 
     def add_ticket(self, pass_id, flight_id, staff_id):
@@ -122,9 +124,9 @@ class database:
             list.append(dict)
         return list
 
-    def cancel_reservation(self, pass_id, flight_id):
+    def cancel_reservation(self, pass_id, flight_id, seat_no):
         cursor = self.db.cursor()
-        cursor.execute("DELETE FROM reservation WHERE pass_id = '{}' AND flight_id = '{}'".format(pass_id, flight_id))
+        cursor.execute("DELETE FROM reservation WHERE pass_id = '{}' AND flight_id = '{}' AND seat_no = '{}'".format(pass_id, flight_id, seat_no))
         self.db.commit()
 
     def display_stores(self, airport_name):
@@ -171,7 +173,7 @@ class database:
 
     def add_phone(self, phone, person_id):
         cursor = self.db.cursor()
-        cursor.execute("INSERT INTO person_phone VALUES(person_id, phone)")
+        cursor.execute("INSERT INTO person_phone VALUES('{}', '{}')".format(person_id, phone))
         self.db.commit()
 
     def delete_email(self, email, person_id):
@@ -182,12 +184,14 @@ class database:
 
     def add_email(self, email, person_id):
         cursor = self.db.cursor()
-        cursor.execute("INSERT INTO person_email VALUES(person_id, email)")
+        cursor.execute("INSERT INTO person_email VALUES('{}', '{}')".format(person_id, email))
         self.db.commit()
 
     def delete_account(self, person_id):
         cursor = self.db.cursor()
         cursor.execute("DELETE FROM person WHERE person_id = '{}'".format(person_id))
+        if cursor.rowcount == 0:
+            raise Error("User not found!")
         self.db.commit()
 
     def browse_pilot_schudule(self, pilot_id):
@@ -290,16 +294,21 @@ class database:
         cursor.execute("DELETE FROM flight_promotion WHERE prom_id = '{}'".format(prom_id))
         self.db.commit()
 
-    def add_flight(self, flight_id, date, plane_id, duration, econ_price, business_price, dep_airport_name,
+    def add_flight(self, date, plane_id, duration, econ_price, business_price, dep_airport_name,
                     dep_city_name, dep_country, arr_airport_name, arr_city_name, arr_country):
         cursor = self.db.cursor()
-        cursor.execute("INSERT INTO flight VALUES('{}', '{}', '{}',"
-                       "'{}', '{}', '{}', '{}', '{}', '{}', '{}', '{}',"
-                       "0)".format(flight_id, date, plane_id, dep_airport_name, dep_city_name,
+        print """INSERT INTO flight VALUES(default, '{}', '{}',
+                       '{}', '{}', '{}', '{}', '{}', '{}', '{}', '{}', '{}',
+                       0)""".format(date, plane_id, dep_airport_name, dep_city_name,
+                       dep_country, arr_airport_name, arr_city_name, arr_country, duration, econ_price,
+                       business_price)
+        cursor.execute("""INSERT INTO flight VALUES(default, '{}', '{}',
+                       '{}','{}', '{}', '{}', '{}', '{}', '{}', '{}', '{}',
+                       0)""".format(date, plane_id, dep_airport_name, dep_city_name,
                        dep_country, arr_airport_name, arr_city_name, arr_country, duration, econ_price,
                        business_price))
         self.db.commit()
-        arrival = date + duration
+        arrival = date + datetime.timedelta(seconds=delay*60)
         cursor.execute("INSERT INTO flight_arrival VALUES('{}', '{}', '{}')"
                        " WHERE NOT EXISTS(SELECT * FROM flight_arrival WHERE "
                        "date = '{}' AND duration = '{}')".format(date, duration, arrival, date, duration))
@@ -308,6 +317,8 @@ class database:
     def remove_flight(self, flight_id):
         cursor = self.db.cursor()
         cursor.execute("DELETE FROM flight WHERE flight_id = '{}'".format(flight_id))
+        if cursor.rowcount == 0:
+            raise Error('Flight not found!')
         self.db.commit()
 
     def add_plane(self, plane_id, model, capacity, plane_range, altitude):
@@ -332,18 +343,20 @@ class database:
         cursor = self.db.cursor()
         cursor.execute("SELECT date FROM flight WHERE flight_id = '{}'".format(flight_id))
         date = cursor.fetchone()
-        new_date = date[0] + delay
-        cursor.execute("UPDATE flight SET date = new_date WHERE flight_id = '{}'".format(flight_id))
+        if date is None:
+            raise Error('Flight not found!')
+        new_date = date[0] + datetime.timedelta(seconds=delay*60)
+        cursor.execute("UPDATE flight SET date = '{}' WHERE flight_id = '{}'".format(new_date, flight_id))
         self.db.commit()
 
     def assign_attendant_to_flight(self, att_id, flight_id):
         cursor = self.db.cursor()
-        cursor.execute("INSERT INTO fligth_att VALUES('{}', '{}')".format(att_id, flight_id))
+        cursor.execute("INSERT INTO flight_att VALUES('{}', '{}')".format(flight_id, att_id))
         self.db.commit()
 
     def assign_pilot_to_flight(self, pilot_id, flight_id):
         cursor = self.db.cursor()
-        cursor.execute("INSERT INTO fligth_pilot VALUES('{}', '{}')".format(pilot_id, flight_id))
+        cursor.execute("INSERT INTO flight_pilot VALUES('{}', '{}')".format(flight_id, pilot_id))
         self.db.commit()
 
     def add_menu_option(self, flight_id, option_id, option_name, price):
@@ -404,8 +417,8 @@ class database:
 
     def display_all_flights(self):
         cursor = self.db.cursor()
-        cursor.execute("SELECT flight_id, date, arrival, duration, arr_city_name, arr_country_name "
-                       "FROM flight NATURAL JOIN flight_arrival WHERE landed = 0 ORDER BY flight_id")
+        cursor.execute("""SELECT flight_id, date, arrival, duration, arr_city_name, arr_country
+                       FROM flight NATURAL JOIN flight_arrival WHERE landed = 0 ORDER BY flight_id""")
         data = cursor.fetchall()
         list = []
         for row in data:
@@ -482,11 +495,9 @@ class database:
 
     def sale_report(self):
         cursor = self.db.cursor()
-        cursor.execute("WITH ticket_price(pass_id, pass_name, ticket_id, price) AS "
-                       "(SELECT pass_id, pass_name, ticket_id CASE WHEN class = 'econ' THEN econ_price "
-                       "ELSE business_price END AS price FROM ticket NATURAL JOIN reservation "
-                       "NATURAL JOIN seat) SELECT pass_id, pass_name, count(*) AS ticket_count, sum(price) AS total_price "
-                       "FROM ticket_price NATURAL JOIN passenger GROUP BY pass_id")
+        cursor.execute("select pass_id, person_name, count(*) as ticket_count, sum(price) as total_price "
+                       "from ticket natural join (passenger join person on pass_id = person_id)"
+                       "group by pass_id")
         data = cursor.fetchall()
         list = []
         for row in data:
@@ -494,20 +505,37 @@ class database:
             list.append(dict)
         return list
 
-    def flight_report(self):
+    def att_report(self):
         cursor = self.db.cursor()
-        cursor.execute("WITH pilot_count(flight_id, no_of_pilots) AS (SELECT flight_id, COUNT(*) AS no_of_pilots "
-                       "FROM flight_pilot GROUP BY flight_id), att_count(flight_id, COUNT(*) AS no_of_att "
-                       "FROM flight_att GROUP BY flight_id) SELECT flight_id, no_of_pilots, no_of_att FROM "
-                       "flight_pilot NATURAL JOIN flight_att")
+        cursor.execute("select flight_id, count(att_id) as att_count "
+                       "from flight_att natural join flight "
+                       "group by flight_id")
         data = cursor.fetchall()
         list = []
         for row in data:
-            dict = {'flight_id': row[0], 'no_of_pilots': row[1], 'no_of_att': row[2]}
+            dict = {'flight_id': row[0], 'no_of_att': row[1]}
             list.append(dict)
+        return list
+
+    def pilot_report(self):
+        cursor = self.db.cursor()
+        cursor.execute("select flight_id, count(pilot_id) as pilot_count "
+                       "from flight_pilot natural join flight "
+                       "group by flight_id")
+        data = cursor.fetchall()
+        list = []
+        for row in data:
+            dict = {'flight_id': row[0], 'no_of_pilot': row[1]}
+            list.append(dict)
+        return list
+
+    def get_pass(self, pass_id):
+        cursor = self.db.cursor()
+        cursor.execute("SELECT * FROM passenger WHERE pass_id = '{}'".format(pass_id))
+        return cursor.fetchone()
 
 if __name__ == "__main__":
-    db = mysql.connector.connect(user="kaan", passwd="root")
+    db = mysql.connector.connect(user="root", passwd="omer")
     try:
         db.database = "airline_company"
     except mysql.connector.Error as err:
@@ -515,3 +543,4 @@ if __name__ == "__main__":
     db = database(db)
 
     ###### TEST CODE GOES HERE
+    print(db.display_direct_flights('ankara', 'istanbul'))

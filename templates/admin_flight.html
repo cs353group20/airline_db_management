@@ -1,0 +1,159 @@
+{% extends "layout.html" %} {% block title %}Add/Remove Flight{% endblock %} {% block css %}
+<link rel="stylesheet" href="/static/assets/examples/css/forms/layouts.css">
+<link rel="stylesheet" href="/static/assets/examples/css/uikit/modals.css">
+  <link rel="stylesheet" href="/static/global/vendor/alertify-js/alertify.css">
+  <link rel="stylesheet" href="/static/assets/examples/css/advanced/alertify.css">
+  <link rel="stylesheet" href="/static/assets/examples/css/forms/advanced.css">
+  <link rel="stylesheet" href="/static/global/vendor/jt-timepicker/jquery-timepicker.css">
+  <link rel="stylesheet" href="/static/global/vendor/bootstrap-datepicker/bootstrap-datepicker.css">
+<link rel="stylesheet" href="/static/assets/examples/css/uikit/icon.css"> {% endblock %} {% block content %}
+<div class="page">
+<div class="page-header">
+    <h1 class="page-title"> Add/Remove Flight</h1>
+</div>
+<div class="page-content">
+        <div class="container-fluid">
+            <div class="row">
+                <div class="col-md-6">
+                    <div class="panel">
+                        <div class="panel-heading">
+                            <h3 class="panel-title"> Add Flight </h3>
+                        </div>
+                        <div class="panel-body">
+                  <form class="form-horizontal" method="POST" action="/admin/flight">
+                      <input type="hidden" name="action" value="add_flight">
+                    <div class="form-group">
+
+                      <label class="col-sm-3 control-label">Date: </label>
+                      <div class="col-sm-9">
+
+                          <div class="datepair-wrap" data-plugin="datepair">
+                          <div class="input-daterange-wrap">
+                            <div class="input-daterange">
+                              <div class="input-group">
+                                <span class="input-group-addon">
+                                  <i class="icon wb-calendar" aria-hidden="true"></i>
+                                </span>
+                                <input type="text" class="form-control datepair-date datepair-start" name="date" data-plugin="datepicker">
+                              </div>
+                              <div class="input-group">
+                                <span class="input-group-addon">
+                                  <i class="icon wb-time" aria-hidden="true"></i>
+                                </span>
+                                <input type="text" class="form-control datepair-time datepair-start" name="time" data-plugin="timepicker"
+                                />
+                              </div>
+                            </div>
+                          </div>
+                        </div>
+                      </div>
+                    </div>
+                    <div class="form-group">
+                      <label class="col-sm-3 control-label">Plane ID: </label>
+                      <div class="col-sm-9">
+                        <input type="text" class="form-control" name="plane_id" autocomplete="off"
+                        />
+                      </div>
+                    </div>
+                    <div class="form-group">
+                      <label class="col-sm-3 control-label">From: </label>
+                      <div class="col-sm-9">
+                        <div class="col-sm-4">
+                            <input type="text" class="form-control col-sm-3" name="fromAirport" placeholder="Airport" autocomplete="off"/>
+                        </div>
+                        <div class="col-sm-4">
+                             <input type="text" class="form-control col-sm-3" name="fromCity" placeholder="City" autocomplete="off"/>
+                        </div>
+                        <div class="col-sm-4">
+                            <input type="text" class="form-control col-sm-3" name="fromCountry" placeholder="Country" autocomplete="off"/>
+                        </div>
+                       </div>
+                    </div>
+                    <div class="form-group">
+                      <label class="col-sm-3 control-label">To: </label>
+                      <div class="col-sm-9">
+                        <div class="col-sm-4">
+                            <input type="text" class="form-control col-sm-3" name="toAirport" placeholder="Airport" autocomplete="off"/>
+                        </div>
+                        <div class="col-sm-4">
+                             <input type="text" class="form-control col-sm-3" name="toCity" placeholder="City" autocomplete="off"/>
+                        </div>
+                        <div class="col-sm-4">
+                            <input type="text" class="form-control col-sm-3" name="toCountry" placeholder="Country" autocomplete="off"/>
+                        </div>
+                      </div>
+                    </div>
+                    <div class="form-group">
+                      <label class="col-sm-3 control-label">Duration: </label>
+                      <div class="col-sm-9">
+                        <input type="text" class="form-control" name="duration" autocomplete="off"
+                        />
+                      </div>
+                    </div>
+                    <div class="form-group">
+                      <label class="col-sm-3 control-label">Economic Price: </label>
+                      <div class="col-sm-9">
+                        <input type="text" class="form-control" name="econ_price" autocomplete="off"
+                        />
+                      </div>
+                    </div>
+                    <div class="form-group">
+                      <label class="col-sm-3 control-label">Business Price: </label>
+                      <div class="col-sm-9">
+                        <input type="text" class="form-control" name="buss_price" autocomplete="off"
+                        />
+                      </div>
+                    </div>
+                    <div class="form-group">
+                      <div class="col-sm-9 col-sm-offset-3">
+                        <button type="submit" class="btn btn-primary">Add</button>
+                      </div>
+                    </div>
+                  </form>
+              </div>
+              </div>
+              </div>
+
+            <div class="col-md-6">
+                    <div class="panel">
+
+                        <div class="panel-heading">
+                            <h3 class="panel-title"> Remove Flight </h3>
+                        </div>
+                        <div class="panel-body">
+                  <form class="form-horizontal" method="POST" action="/admin/flight">
+                      <input type="hidden" name="action" value="remove_flight">
+                      <div class="form-group">
+                        <label class="col-sm-3 control-label">Flight ID: </label>
+                        <div class="col-sm-9">
+                          <input type="text" class="form-control" name="flight_id" autocomplete="off"
+                          />
+                        </div>
+                      </div>
+
+                    <div class="form-group">
+                      <div class="col-sm-9 col-sm-offset-3">
+                        <button type="submit" class="btn btn-danger">Remove</button>
+                      </div>
+                    </div>
+                  </form>
+              </div>
+              </div>
+              </div>
+          </div>
+</div>
+</div>
+</div>
+{% endblock %}
+{% block js %}
+<script src="/static/global/vendor/alertify-js/alertify.js"></script>
+<script src="/static/global/js/components/bootstrap-datepicker.js"></script>
+<script src="/static/global/vendor/bootstrap-datepicker/bootstrap-datepicker.js"></script>
+<script src="/static/assets/examples/js/forms/advanced.js"></script>
+<script src="/static/global/js/components/alertify-js.js"></script>
+<script src="/static/global/vendor/datepair-js/jquery.datepair.min.js"></script>
+<script src="/static/global/vendor/jquery-strength/jquery-strength.min.js"></script>
+<script src="/static/global/js/components/datepair-js.js"></script>
+<script src="/static/global/vendor/jt-timepicker/jquery.timepicker.min.js"></script>
+<script src="/static/global/js/components/jt-timepicker.js"></script>
+{% endblock %}

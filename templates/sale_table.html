@@ -1,0 +1,33 @@
+    <table class="table table-bordered">
+        <thead>
+            <tr>
+                <th>Passenger ID</th>
+                <th>Flight ID</th>
+                <th>Price</th>
+                <th class="text-nowrap">Action</th>
+            </tr>
+        </thead>
+        <tbody id = "tableBody">
+            {% for entry in data %}
+            <tr>
+                <td>{{entry.pass_id}}</td>
+                <td>{{entry.flight_id}}</td>
+                <td>{{entry.price}}</td>
+                <td class="text-nowrap">
+                    <span data-toggle="modal" data-target="#luggageModal">
+                        <button type="button" class="luggageButton btn btn-sm btn-icon btn-flat btn-default" data-toggle="tooltip" data-original-title="Luggage">
+                            <i class="icon wb-briefcase" aria-hidden="true"></i>
+                            <input type="hidden" id="luggagePassengerID" value="{{entry.pass_id}}">
+                            <input type="hidden" id="luggageFlightID" value="{{entry.flight_id}}">
+                        </button>
+                    </span>
+                    <button type="button" class="sellButton btn btn-sm btn-icon btn-flat btn-default" data-toggle="tooltip" data-original-title="Sell">
+                        <i class="icon wb-check-circle" aria-hidden="true"></i>
+                        <input type="hidden" id="luggagePassengerID" value="{{entry.pass_id}}">
+                        <input type="hidden" id="luggageFlightID" value="{{entry.flight_id}}">
+                    </button>
+                </td>
+            </tr>
+            {% endfor %}
+        </tbody>
+    </table>

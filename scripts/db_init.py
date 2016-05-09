@@ -1,10 +1,12 @@
 import mysql.connector
 from mysql.connector import errorcode
 
-conn = mysql.connector.connect(user= "kaan ", passwd= "root ")
+conn = mysql.connector.connect(user= "root", passwd= "omer")
 cursor = conn.cursor(buffered=True)
 
 DB_NAME = 'airline_company'
+
+cursor.execute( "DROP DATABASE IF EXISTS airline_company")
 
 try:
     cursor.execute( "CREATE DATABASE if not exists airline_company ")
@@ -22,18 +24,6 @@ except mysql.connector.Error as err:
         print(err)
         exit(1)
 
-# Drop tables
-cursor.execute( "DROP TABLE IF EXISTS promotion_deadline, flight_arrival CASCADE ")
-cursor.execute( "DROP TABLE IF EXISTS flight_att, ticket, plane_model CASCADE ")
-cursor.execute( "DROP TABLE IF EXISTS pass_history, pers_history, flight_pilot CASCADE ")
-cursor.execute( "DROP TABLE IF EXISTS reservation, seat, menu_option, flight, plane CASCADE ")
-cursor.execute( "DROP TABLE IF EXISTS store_promotion, food_promotion, flight_promotion CASCADE ")
-cursor.execute( "DROP TABLE IF EXISTS ticket_staff, store_staff, promotion CASCADE ")
-cursor.execute( "DROP TABLE IF EXISTS flight_attendant, pilot, flight_personnel CASCADE ")
-cursor.execute( "DROP TABLE IF EXISTS store, airport, passenger, staff CASCADE ")
-cursor.execute( "DROP TABLE IF EXISTS person_phone, person_email, person, city CASCADE ")
-cursor.execute( "DROP VIEW IF EXISTS professional_pilot ")
-
 # Create tables
 tables = []
 tables.append(
@@ -43,7 +33,8 @@ tables.append(
      "person_name varchar(40) NOT NULL,  "
      "address_no int,  "
      "street varchar(40),  "
-     "town varchar(40) "
+     "town varchar(40), "
+     "city varchar(40)"
      ") ENGINE=InnoDB ")
 
 tables.append(
@@ -147,7 +138,7 @@ tables.append(
                  "on delete cascade, "
 		 "FOREIGN KEY(store_id) references store(store_id)  "
                  "on delete cascade) ENGINE=InnoDB ")
-		
+
 tables.append(
 		 "CREATE TABLE promotion ( "
 		 "pass_id int, "
@@ -157,7 +148,7 @@ tables.append(
                  "UNIQUE KEY(amount), "
 		 "FOREIGN KEY(pass_id) references passenger(pass_id)  "
                  "on delete cascade) ENGINE=InnoDB ")
-		
+
 tables.append(
 		 "CREATE TABLE store_promotion ( "
 		 "pass_id int, "
@@ -166,7 +157,7 @@ tables.append(
 		 "PRIMARY KEY(pass_id, prom_id), "
 		 "FOREIGN KEY(pass_id, prom_id) references promotion(pass_id, prom_id)  "
                  "on delete cascade) ENGINE=InnoDB ")
-		
+
 tables.append(
 		 "CREATE TABLE food_promotion ( "
 		 "pass_id int, "
@@ -175,7 +166,7 @@ tables.append(
 		 "PRIMARY KEY(pass_id, prom_id), "
 		 "FOREIGN KEY(pass_id, prom_id) references promotion(pass_id, prom_id)  "
                  "on delete cascade) ENGINE=InnoDB ")
-		
+
 tables.append(
 		 "CREATE TABLE flight_promotion ( "
 		 "pass_id int, "
@@ -184,7 +175,7 @@ tables.append(
 		 "PRIMARY KEY(pass_id, prom_id), "
 		 "FOREIGN KEY(pass_id, prom_id) references promotion(pass_id, prom_id)  "
                  "on delete cascade) ENGINE=InnoDB ")
-		
+
 tables.append(
                  "CREATE TABLE promotion_deadline( "
 		 "amount int, "
@@ -192,22 +183,28 @@ tables.append(
 		 "PRIMARY KEY(amount, deadline), "
 		 "FOREIGN KEY(amount) references promotion(amount)  "
                  "on delete cascade) ENGINE=InnoDB ")
-			
-tables.append(
-		 "CREATE TABLE plane( "
-		 "plane_id int PRIMARY KEY AUTO_INCREMENT, "
-		 "model varchar(20) NOT NULL, "
-                 "UNIQUE KEY(model)) ENGINE=InnoDB ")
 
 tables.append(
 		 "CREATE TABLE plane_model( "
                  "model varchar(20) PRIMARY KEY, "
 		 "capacity int, "
-                 "plane_range numeric(5,2), "
-                 "altitude numeric(5,2), "
-                 "FOREIGN KEY(model) references plane(model)  "
-                 "on delete cascade) ENGINE=InnoDB ")
-		
+                 "plane_range numeric(7,2), "
+                 "altitude numeric(5,2)) ENGINE=InnoDB ")
+
+tables.append(
+		 "CREATE TABLE plane( "
+		 "plane_id int PRIMARY KEY AUTO_INCREMENT, "
+		 "model varchar(20) NOT NULL,"
+                 "FOREIGN KEY(model) references plane_model(model) "
+                 "on delete cascade)"
+                 "ENGINE=InnoDB ")
+tables.append(
+		 "CREATE TABLE flight_arrival ( "
+		 "date DATETIME, "
+		 "duration numeric(5,2), "
+		 "arrival DATETIME, "
+		 "PRIMARY KEY(date, duration, arrival)) ENGINE=InnoDB ")
+
 tables.append(
 		 "CREATE TABLE flight ( "
 		 "flight_id int PRIMARY KEY AUTO_INCREMENT, "
@@ -219,7 +216,7 @@ tables.append(
 		 "arr_airport_name varchar(40), "
 		 "arr_city_name varchar(40), "
 		 "arr_country varchar(40), "
-		 "duration numeric(3,2), "
+		 "duration numeric(5,2), "
                  "econ_price numeric(6,2), "
 		 "business_price numeric(6,2), "
 		 "landed binary NOT NULL, "
@@ -231,17 +228,9 @@ tables.append(
 		 "FOREIGN KEY(arr_airport_name, arr_city_name, arr_country) references  "
 		 "airport(airport_name, city_name, country)  "
                  "on delete cascade, "
-                 "UNIQUE KEY(date, duration)) ENGINE=InnoDB ")
-		
-tables.append(
-		 "CREATE TABLE flight_arrival ( "
-		 "date DATETIME, "
-		 "duration numeric(3,2), "
-		 "arrival DATETIME, "
-		 "PRIMARY KEY(date, duration, arrival), "
-		 "FOREIGN KEY(date, duration) references flight(date, duration)  "
+                 "FOREIGN KEY(date, duration) references flight_arrival(date, duration) "
                  "on delete cascade) ENGINE=InnoDB ")
-		
+
 tables.append(
 		 "CREATE TABLE seat ( "
 		 "flight_id int, "
@@ -250,7 +239,7 @@ tables.append(
 		 "PRIMARY KEY (flight_id, no), "
 		 "FOREIGN KEY (flight_id) references flight(flight_id)  "
                  "on delete cascade) ENGINE=InnoDB ")
-		
+
 tables.append(
 		 "CREATE TABLE menu_option( "
 		 "flight_id int, "
@@ -260,7 +249,7 @@ tables.append(
 		 "PRIMARY KEY (flight_id, option_id), "
 		 "FOREIGN KEY (flight_id) references flight(flight_id)  "
                  "on delete cascade) ENGINE=InnoDB ")
-		
+
 tables.append(
 		 "CREATE TABLE reservation( "
 		 "flight_id int, "
@@ -272,7 +261,7 @@ tables.append(
                  "on delete cascade, "
 		 "FOREIGN KEY(flight_id, seat_no) references seat(flight_id, no)  "
                  "on delete cascade) ENGINE=InnoDB ")
-		
+
 tables.append(
 		 "CREATE TABLE pass_history ( "
 		 "flight_id int, "
@@ -282,7 +271,7 @@ tables.append(
                  "on delete cascade, "
 		 "FOREIGN KEY(pass_id) references passenger(pass_id)  "
                  "on delete cascade) ENGINE=InnoDB ")
-		
+
 tables.append(
 		 "CREATE TABLE pers_history( "
 		 "flight_id int, "
@@ -292,7 +281,7 @@ tables.append(
                  "on delete cascade, "
 		 "FOREIGN KEY(flight_pers_id) references flight_personnel(flight_pers_id)  "
                  "on delete cascade) ENGINE=InnoDB ")
-	
+
 tables.append(
 		 "CREATE TABLE flight_pilot ( "
 		 "flight_id int, "
@@ -302,7 +291,7 @@ tables.append(
                  "on delete cascade, "
 		 "FOREIGN KEY(pilot_id) references pilot(pilot_id)  "
                  "on delete cascade) ENGINE=InnoDB ")
-		
+
 tables.append(
 		 "CREATE TABLE flight_att( "
 		 "flight_id int, "
@@ -312,7 +301,7 @@ tables.append(
                  "on delete cascade, "
 		 "FOREIGN KEY(att_id) references flight_attendant(att_id)  "
                  "on delete cascade) ENGINE=InnoDB ")
-		
+
 tables.append(
 		 "CREATE TABLE ticket( "
 		 "ticket_id int AUTO_INCREMENT, "
@@ -339,47 +328,7 @@ for sql in tables:
     else:
         pass
 
-trigger = []
-trigger.append( "create trigger pass_expenditure before insert on ticket  "
-                "for each row update passenger set expenditure = expenditure + new.price  "
-                "where pass_id = new.pass_id ")
 
-trigger.append( "create trigger arrival_date after update on flight for each row  "
-                "update flight_arrival set arrival = new.date + new.duration ")
-
-trigger.append( "create trigger luggage_expenditure after update on ticket for each row begin  "
-                "if old.luggage > 5 then update passenger set expenditure = expenditure +  "
-                "(new.luggage - old.luggage) * 10 where new.luggage > 5 and pass_id = new.pass_id;  "
-                "else update passenger set expenditure = expenditure + (new.luggage - 5) * 10  "
-                "where new.luggage > 5 and pass_id = new.pass_id; end if; end ")
-
-trigger.append( "create trigger land_flight after update on flight for each row  "
-                "delete from flight_att where flight_id = new.flight_id and new.landed = 1 ")
-
-trigger.append( "create trigger land_flight2 after update on flight for each row  "
-                "delete from flight_pilot where flight_id = new.flight_id and new.landed = 1 ")
-
-trigger.append( "create trigger insert_pass_history after insert on ticket  "
-                "for each row insert into pass_history values(new.pass_id, new.flight_id) ")
-
-trigger.append( "create trigger delete_pass_history after delete on ticket  "
-                "for each row delete from pass_history where flight_id = old.flight_id  "
-                "and pass_id = old.pass_id ")
-
-trigger.append( "create trigger add_att_history after insert on flight_att for each row  "
-                "insert into pers_history values(new.att_id, new.flight_id) ")
-
-trigger.append( "create trigger add_pilot_history after insert on flight_pilot for each row  "
-                "insert into pers_history values(new.pilot_id, new.flight_id) ")
-
-for sql in trigger:
-    try:
-        cursor.execute(sql)
-    except mysql.connector.Error as err:
-        if err.errno == errorcode.ER_TABLE_EXISTS_ERROR:
-            print( "already exists. ")
-        else:
-            print(err.msg)
 
 try:
     cursor.execute( "create view professional_pilot as select * from pilot  "
@@ -394,12 +343,12 @@ data = []
 data.append(
         #passengers 1-11
          "insert into person "
-         "(password, person_name, address_no, street, town)  "
+         "(password, person_name, address_no, street, town) "
          "values('omer', 'omer', 789, 'ceviz', 'chinatown'); ")
 data.append(
 
          "insert into person "
-         "(password, person_name, address_no, street, town)  "
+         "(password, person_name, address_no, street, town) "
          "values('kaan', 'kaan', 456, 'kestane', 'venezullatown'); ")
 data.append(
          "insert into person "
@@ -409,31 +358,31 @@ data.append(
          "insert into person "
          "(password, person_name, address_no, street, town)  "
          "values('eren', 'eren', 666, 'cinar', 'hightown'); ")
-data.append(        
+data.append(
          "insert into person "
          "(password, person_name, address_no, street, town)  "
          "values('adam', 'adam', 789, 'ceviz', 'chinatown'); ")
-data.append(        
+data.append(
          "insert into person "
          "(password, person_name, address_no, street, town)  "
          "values('Max', 'max', 456, 'kestane', 'venezullatown'); ")
-data.append(        
+data.append(
          "insert into person "
          "(password, person_name, address_no, street, town)  "
          "values('madam', 'madam', 444, '444sokak', 'bankatown'); ")
-data.append(        
+data.append(
          "insert into person "
          "(password, person_name, address_no, street, town)  "
          "values('franky', 'franky', 666, 'cinar', 'helltown'); ")
-data.append(        
+data.append(
          "insert into person "
          "(password, person_name, address_no, street, town)  "
          "values('gumball watterson', 'gumball', 9999, 'imaginaryStreet', 'elmoretown'); ")
-data.append(        
+data.append(
          "insert into person "
          "(password, person_name, address_no, street, town)  "
          "values('kamina', 'kamina', 9001, 'garstreet', 'kmntown'); ")
-data.append(        
+data.append(
          "insert into person "
          "(password, person_name, address_no, street, town)  "
          "values('gin', 'gin', 23, 'parkstreet', 'kabuki'); ")
@@ -442,58 +391,58 @@ data.append(
          "insert into person "
          "(password, person_name, address_no, street, town)  "
          "values('Roy Mustang', 'roy', 23, 'kingstreet', 'kingtown'); ")
-data.append(        
+data.append(
          "insert into person "
          "(password, person_name, address_no, street, town)  "
          "values('Alphonse', 'alphonse', 15, 'islandstreet', 'Resembool'); ")
-data.append(        
+data.append(
          "insert into person "
          "(password, person_name, address_no, street, town)  "
          "values('Slark Kent', 'slark', 23, 'nightstreet', 'diretown'); ")
-data.append(        
+data.append(
          "insert into person "
          "(password, person_name, address_no, street, town)  "
          "values('Puck Norris', 'puck', 354, 'lightstreet', 'radiantstreet'); ")
-data.append(        
+data.append(
         #crew 16-25
         #16-20
          "insert into person "
          "(password, person_name, address_no, street, town)  "
          "values('Jackie Lmao', 'jacky', 12321, 'parkstreet', 'elmoretown'); ")
-data.append(        
+data.append(
          "insert into person "
          "(password, person_name, address_no, street, town)  "
          "values('Arteezy Babaev', 'arteezy', 9765, 'parkstreet', 'sellouttown'); ")
-data.append(        
+data.append(
          "insert into person "
          "(password, person_name, address_no, street, town)  "
          "values('Skrillex', 'skrillex', 123333, 'parkstreet', 'arttown'); ")
-data.append(        
+data.append(
          "insert into person "
          "(password, person_name, address_no, street, town)  "
          "values('Michael Jordan', 'jordan', 23, 'parkstreet', 'chicagotown'); ")
-data.append(        
+data.append(
          "insert into person "
          "(password, person_name, address_no, street, town)  "
          "values('Dante', 'dante', 543, 'garstreet', 'helltown'); ")
-data.append(        
+data.append(
         #pilots 21-25
          "insert into person "
          "(password, person_name, address_no, street, town)  "
          "values('batman', 'batman', 23, 'batstreet', 'batcavetown'); ")
-data.append(        
+data.append(
          "insert into person "
          "(password, person_name, address_no, street, town)  "
          "values('superman', 'superman', 23123, 'JLstreet', 'ktyptown'); ")
-data.append(       
+data.append(
          "insert into person "
          "(password, person_name, address_no, street, town)  "
          "values('hulk', 'hulk', 888, 'carnivalst', 'riostreet'); ")
-data.append(        
+data.append(
          "insert into person "
          "(password, person_name, address_no, street, town)  "
          "values('emett', 'emett', 1234, 'ordinarystreet', 'ordinarytown'); ")
-data.append(        
+data.append(
          "insert into person "
          "(password, person_name, address_no, street, town)  "
          "values('Gandalf', 'Gandalf', 123123, 'lightstreet', 'radiantstreet'); ")
@@ -506,39 +455,39 @@ data.append(
          "insert into person_phone "
          "(person_id, phone)  "
          "values(2,'1231231'); ")
-data.append(        
+data.append(
          "insert into person_phone "
          "(person_id, phone)  "
          "values(3,'22222321'); ")
-data.append(        
+data.append(
          "insert into person_phone "
          "(person_id, phone)  "
          "values(4,'50505058'); ")
-data.append(      
+data.append(
          "insert into person_phone "
          "(person_id, phone)  "
          "values(5,'33333333'); ")
-data.append(      
+data.append(
          "insert into person_phone "
          "(person_id, phone)  "
          "values(6,'89875263'); ")
-data.append(     
+data.append(
          "insert into person_phone "
          "(person_id, phone)  "
          "values(7,'12461113'); ")
-data.append(    
+data.append(
          "insert into person_phone "
          "(person_id, phone)  "
          "values(8,'82228222'); ")
-data.append(    
+data.append(
          "insert into person_phone "
          "(person_id, phone)  "
          "values(9,'8552541'); ")
-data.append(    
+data.append(
          "insert into person_phone "
          "(person_id, phone)  "
          "values(10,'3248555528'); ")
-data.append(   
+data.append(
          "insert into person_phone "
          "(person_id, phone)  "
          "values(11,'+90879541'); ")
@@ -546,55 +495,55 @@ data.append(
          "insert into person_phone "
          "(person_id, phone)  "
          "values(12,'3452123'); ")
-data.append(      
+data.append(
          "insert into person_phone "
          "(person_id, phone)  "
          "values(13,'2346234'); ")
-data.append(      
+data.append(
          "insert into person_phone "
          "(person_id, phone)  "
          "values(14,'2346546'); ")
-data.append(     
+data.append(
          "insert into person_phone "
          "(person_id, phone)  "
          "values(15,'5684354'); ")
-data.append(      
+data.append(
          "insert into person_phone "
          "(person_id, phone)  "
          "values(16,'67854234'); ")
-data.append(     
+data.append(
          "insert into person_phone "
          "(person_id, phone)  "
          "values(17,'6787452'); ")
-data.append(    
+data.append(
          "insert into person_phone "
          "(person_id, phone)  "
          "values(18,'3234238'); ")
-data.append(     
+data.append(
          "insert into person_phone "
          "(person_id, phone)  "
          "values(19,'32443634628'); ")
-data.append(     
+data.append(
          "insert into person_phone "
          "(person_id, phone)  "
          "values(20,'3248523423'); ")
-data.append(     
+data.append(
          "insert into person_phone "
          "(person_id, phone)  "
          "values(21,'32342328'); ")
-data.append(    
+data.append(
          "insert into person_phone "
          "(person_id, phone)  "
          "values(22,'324345438'); ")
-data.append(    
+data.append(
          "insert into person_phone "
          "(person_id, phone)  "
          "values(23,'324568'); ")
-data.append(    
+data.append(
          "insert into person_phone "
          "(person_id, phone)  "
          "values(24,'32423428'); ")
-data.append(    
+data.append(
          "insert into person_phone "
          "(person_id, phone)  "
          "values(25,'32456465528'); "
@@ -608,35 +557,35 @@ data.append(
          "insert into person_email "
          "(person_id, email)  "
          "values(2,'kaan@data.com'); ")
-data.append(        
+data.append(
          "insert into person_email "
          "(person_id, email)  "
          "values(3,'irem@data.com'); ")
-data.append(        
+data.append(
          "insert into person_email "
          "(person_id, email)  "
          "values(4,'eren@data.com'); ")
-data.append(        
+data.append(
          "insert into person_email "
          "(person_id, email)  "
          "values(5,'adam@data.com'); ")
-data.append(       
+data.append(
          "insert into person_email "
          "(person_id, email)  "
          "values(6,'max@data.com'); ")
-data.append(        
+data.append(
          "insert into person_email "
          "(person_id, email)  "
          "values(7,'madam@data.com'); ")
-data.append(        
+data.append(
          "insert into person_email "
          "(person_id, email)  "
          "values(8,'franky@data.com'); ")
-data.append(        
+data.append(
          "insert into person_email "
          "(person_id, email)  "
          "values(9,'gumball@data.com'); ")
-data.append(        
+data.append(
          "insert into person_email "
          "(person_id, email)  "
          "values(10,'kamina@data.com'); ")
@@ -648,55 +597,55 @@ data.append(
          "insert into person_email "
          "(person_id, email)  "
          "values(12, 'roy@data.com'); ")
-data.append(        
+data.append(
          "insert into person_email "
          "(person_id, email)  "
          "values(13, 'alphonse@data.com'); ")
-data.append(       
+data.append(
         "insert into person_email "
          "(person_id, email)  "
          "values(14, 'slark@data.com'); ")
-data.append(       
+data.append(
         "insert into person_email "
          "(person_id, email)  "
          "values(15, 'puck@data.com'); ")
-data.append(       
+data.append(
         "insert into person_email "
          "(person_id, email)  "
          "values(16, 'jacky@data.com'); ")
-data.append(       
+data.append(
         "insert into person_email "
          "(person_id, email)  "
          "values(17, 'arteezy@data.com'); ")
-data.append(       
+data.append(
         "insert into person_email "
          "(person_id, email)  "
          "values(18, 'skrillex@data.com'); ")
-data.append(       
+data.append(
         "insert into person_email "
          "(person_id, email)  "
          "values(19, 'jordan@data.com'); ")
-data.append(       
+data.append(
         "insert into person_email "
          "(person_id, email)  "
          "values(20, 'dante@data.com'); ")
-data.append(      
+data.append(
         "insert into person_email "
          "(person_id, email)  "
          "values(21, 'batman@data.com'); ")
-data.append(       
+data.append(
         "insert into person_email "
          "(person_id, email)  "
          "values(22, 'superman@data.com'); ")
-data.append(      
+data.append(
         "insert into person_email "
          "(person_id, email)  "
          "values(23, 'hulk@data.com'); ")
-data.append(      
+data.append(
         "insert into person_email "
          "(person_id, email)  "
          "values(24, 'emett@data.com'); ")
-data.append(     
+data.append(
         "insert into person_email "
          "(person_id, email)  "
          "values(25, 'gandalf@data.com'); "
@@ -705,7 +654,7 @@ data.append(
 data.append(
          "insert into city "
          "(city_name, country, latitude, longitude)  "
-         "values('Cape Town', 'South Africa', -33.92, 18.42) ") 
+         "values('Cape Town', 'South Africa', -33.92, 18.42) ")
 data.append(
          "insert into city "
          "(city_name, country, latitude, longitude)  "
@@ -717,65 +666,65 @@ data.append(
 data.append(
          "insert into city "
          "(city_name, country, latitude, longitude)  "
-         "values('New York', 'United States', 40.7128, -74.0059) ") 
-data.append(        
+         "values('New York', 'United States', 40.7128, -74.0059) ")
+data.append(
          "insert into city "
          "(city_name, country, latitude, longitude)  "
          "values('Tokyo', 'Japan', 35.6895, 139.6917) " )
-data.append(        
+data.append(
          "insert into city "
          "(city_name, country, latitude, longitude)  "
-         "values('Beijin', 'China', 39.9042, 116.4074) " )
-data.append(        
+         "values('Beijing', 'China', 39.9042, 116.4074) " )
+data.append(
          "insert into city "
          "(city_name, country, latitude, longitude) "
          "values('London', 'England', 51.5074, 0.1278) " )
-data.append(        
+data.append(
          "insert into city "
          "(city_name, country, latitude, longitude)  "
-         "values('Cairo', 'Egypt', 30.0444, 31.2357) " 
+         "values('Cairo', 'Egypt', 30.0444, 31.2357) "
 )
 
 data.append(
          "insert into airport "
          "(airport_name, city_name, country) "
          "values('Istanbul Ataturk Airport', 'Istanbul', 'Turkey') " )
-data.append(       
+data.append(
          "insert into airport "
          "(airport_name, city_name, country) "
-         "values('Sabiha Gokcen International Airport', 'Istanbul', 'Turkey') ") 
-data.append(       
+         "values('Sabiha Gokcen International Airport', 'Istanbul', 'Turkey') ")
+data.append(
          "insert into airport "
          "(airport_name, city_name, country)"
-         "values('Ankara Esenboga Airport', 'Ankara', 'Turkey') ") 
-data.append(        
+         "values('Ankara Esenboga Airport', 'Ankara', 'Turkey') ")
+data.append(
          "insert into airport "
          "(airport_name, city_name, country)  "
-         "values('John F. Kennedy International Airport', 'New York', 'United States') ") 
-data.append(       
+         "values('John F. Kennedy International Airport', 'New York', 'United States') ")
+data.append(
          "insert into airport "
          "(airport_name, city_name, country)  "
-         "values('LaGuardia Airport', 'New York', 'United States') ") 
-data.append(       
+         "values('LaGuardia Airport', 'New York', 'United States') ")
+data.append(
          "insert into airport "
          "(airport_name, city_name, country)  "
          "values('Cairo International Airport', 'Cairo', 'Egypt') " )
-data.append(      
+data.append(
          "insert into airport "
          "(airport_name, city_name, country) "
-         "values('London City Airport', 'London', 'England') ") 
-data.append(      
+         "values('London City Airport', 'London', 'England') ")
+data.append(
          "insert into airport "
          "(airport_name, city_name, country)  "
-         "values('Heathrow Airport', 'London', 'England') ") 
-data.append(      
+         "values('Heathrow Airport', 'London', 'England') ")
+data.append(
          "insert into airport "
          "(airport_name, city_name, country)  "
          "values('Haneda Airport', 'Tokyo', 'Japan') " )
-data.append(        
+data.append(
          "insert into airport "
          "(airport_name, city_name, country)  "
-         "values('Narita International Airport', 'Tokyo', 'Japan') ") 
+         "values('Narita International Airport', 'Tokyo', 'Japan') ")
 data.append(
          "insert into airport "
          "(airport_name, city_name, country)  "
@@ -791,10 +740,6 @@ data.append(
 data.append(
          "insert into airport "
          "(airport_name, city_name, country)  "
-         "values('Beijing Nanyuan Airport', 'Beijing', 'China') ")
-data.append(
-         "insert into airport "
-         "(airport_name, city_name, country)  "
          "values('Cape Town International Airport', 'Cape Town', 'South Africa') "
 )
 
@@ -802,31 +747,31 @@ data.append(
          "insert into store "
          "(store_name, owner, airport_name, city_name, country)  "
          "values('Toys and Stuff', 'Toy Shop owner dude', 'Cape Town International Airport', 'Cape Town', 'South Africa') ")
-data.append(        
+data.append(
          "insert into store "
          "(store_name, owner, airport_name, city_name, country)  "
          "values('Smoke and Stuff', 'Snoop Dogg', 'John F. Kennedy International Airport', 'New York', 'United States') ")
-data.append(        
+data.append(
          "insert into store "
          "(store_name, owner, airport_name, city_name, country)  "
          "values('NotFake Store', 'MM Owner', 'Beijing Nanyuan Airport', 'Beijing', 'China') ")
-data.append(        
+data.append(
          "insert into store "
          "(store_name, owner, airport_name, city_name, country)  "
          "values('FluffyStuffy', 'FS Owner', 'Narita International Airport', 'Tokyo', 'Japan') ")
-data.append(        
+data.append(
          "insert into store "
          "(store_name, owner, airport_name, city_name, country)  "
          "values('Lokumcu', 'LokumcuBaba', 'Istanbul Ataturk Airport', 'Istanbul', 'Turkey') ")
-data.append(        
+data.append(
          "insert into store "
          "(store_name, owner, airport_name, city_name, country)  "
          "values('Kebap Kebap', 'Kebabci', 'Sabiha Gokcen International Airport', 'Istanbul', 'Turkey') ")
-data.append(        
+data.append(
          "insert into store "
          "(store_name, owner, airport_name, city_name, country)  "
          "values('Soda Limon', 'Sodaci', 'Ankara Esenboga Airport', 'Ankara', 'Turkey') ")
-data.append(       
+data.append(
          "insert into store "
          "(store_name, owner, airport_name, city_name, country)  "
          "values('Camel Tobacco', 'Camel Rider Smoke', 'Cairo International Airport', 'Cairo', 'Egypt') ")
@@ -848,23 +793,23 @@ data.append(
          "insert into passenger "
          "(pass_id, expenditure, prom_expenditure)  "
          "values(1, 56756, 3345) ")
-data.append(        
+data.append(
          "insert into passenger "
          "(pass_id, expenditure, prom_expenditure)  "
          "values(2, 12312, 323) ")
-data.append(        
+data.append(
          "insert into passenger "
          "(pass_id, expenditure, prom_expenditure)  "
          "values(3, 11235, 45454) ")
-data.append(        
+data.append(
          "insert into passenger "
          "(pass_id, expenditure, prom_expenditure)  "
          "values(4, 66666, 66666) ")
-data.append(       
+data.append(
          "insert into passenger "
          "(pass_id, expenditure, prom_expenditure)  "
          "values(5, 665, 55) ")
-data.append(       
+data.append(
          "insert into passenger "
          "(pass_id, expenditure, prom_expenditure)  "
          "values(6, 4213, 666) ")
@@ -872,339 +817,370 @@ data.append(
          "insert into passenger "
          "(pass_id, expenditure, prom_expenditure)  "
          "values(7, 77777, 77) ")
-data.append(       
+data.append(
          "insert into passenger "
          "(pass_id, expenditure, prom_expenditure)  "
          "values(8, 6668, 88) ")
-data.append(      
+data.append(
          "insert into passenger "
          "(pass_id, expenditure, prom_expenditure)  "
          "values(9, 99999, 99) ")
-data.append(     
+data.append(
          "insert into passenger "
          "(pass_id, expenditure, prom_expenditure)  "
          "values(10, 101, 10) ")
-data.append(     
+data.append(
          "insert into passenger "
          "(pass_id, expenditure, prom_expenditure)  "
          "values(11, 1111, 12) "
-        
+
 )
 
 data.append(
          "insert into staff "
          "(staff_id, salary)  "
          "values(12, 300) ")
-data.append(       
+data.append(
          "insert into staff "
          "(staff_id, salary)  "
          "values(13, 445) ")
-data.append(       
+data.append(
          "insert into staff "
          "(staff_id, salary)  "
          "values(14, 677) ")
-data.append(       
+data.append(
          "insert into staff "
          "(staff_id, salary)  "
          "values(15, 650) "
 )
+data.append(
+         "insert into staff "
+         "(staff_id, salary)  "
+         "values(16, 300) ")
+data.append(
+         "insert into staff "
+         "(staff_id, salary)  "
+         "values(17, 445) ")
+data.append(
+         "insert into staff "
+         "(staff_id, salary)  "
+         "values(18, 677) ")
+data.append(
+         "insert into staff "
+         "(staff_id, salary)  "
+         "values(19, 650) "
+)
+data.append(
+         "insert into staff "
+         "(staff_id, salary)  "
+         "values(20, 300) ")
+data.append(
+         "insert into staff "
+         "(staff_id, salary)  "
+         "values(21, 445) ")
+data.append(
+         "insert into staff "
+         "(staff_id, salary)  "
+         "values(22, 677) ")
+data.append(
+         "insert into staff "
+         "(staff_id, salary)  "
+         "values(23, 650) "
+)
+data.append(
+         "insert into staff "
+         "(staff_id, salary)  "
+         "values(24, 650) "
+)
+data.append(
+         "insert into staff "
+         "(staff_id, salary)  "
+         "values(25, 650) "
+)
 
 data.append(
          "insert into flight_personnel "
          "(flight_pers_id, experience)  "
-         "values(16, 2) " )       
+         "values(12, 2) " )
 data.append(
          "insert into flight_personnel "
          "(flight_pers_id, experience)  "
-         "values(17, 12) ")        
-data.append(        
-         "insert into flight_personnel "
-         "(flight_pers_id, experience)  "
-         "values(18, 12) ")        
+         "values(13, 12) ")
 data.append(
          "insert into flight_personnel "
          "(flight_pers_id, experience)  "
-         "values(19, 11) ")        
-data.append(      
+         "values(14, 12) ")
+data.append(
+         "insert into flight_personnel "
+         "(flight_pers_id, experience)  "
+         "values(15, 11) ")
+data.append(
         "insert into flight_personnel "
          "(flight_pers_id, experience)  "
-         "values(20, 4) "  )      
-data.append(     
+         "values(16, 4) "  )
+data.append(
         "insert into flight_personnel "
          "(flight_pers_id, experience)  "
-         "values(21, 6) " )       
-data.append(      
+         "values(17, 6) " )
+data.append(
         "insert into flight_personnel "
          "(flight_pers_id, experience)  "
-         "values(22, 9) "  )      
-data.append(      
+         "values(18, 9) "  )
+data.append(
         "insert into flight_personnel "
          "(flight_pers_id, experience)  "
-         "values(23, 7) " )       
-data.append(     
+         "values(19, 7) " )
+data.append(
         "insert into flight_personnel "
          "(flight_pers_id, experience)  "
-         "values(24, 6) ")        
-data.append(     
+         "values(20, 6) ")
+data.append(
         "insert into flight_personnel "
          "(flight_pers_id, experience)  "
-         "values(25, 22) "        
+         "values(21, 22) "
 )
 
 data.append(
          "insert into pilot "
          "(pilot_id, rank, certificate_type)  "
-         "values(21, 2, ) ")
-data.append(       
+         "values(12, 2, 'sport') ")
+data.append(
          "insert into pilot "
          "(pilot_id, rank, certificate_type)  "
-         "values(22, 8, ) ")
-data.append(        
+         "values(13, 8, 'recreational') ")
+data.append(
          "insert into pilot "
          "(pilot_id, rank, certificate_type)  "
-         "values(23, 6, ) ")
-data.append(        
+         "values(14, 6, 'instructor') ")
+data.append(
          "insert into pilot "
          "(pilot_id, rank, certificate_type)  "
-         "values(24, 4, ) ")
-data.append(       
+         "values(15, 4, 'airline transport') ")
+data.append(
          "insert into pilot "
          "(pilot_id, rank, certificate_type)  "
-         "values(25, 10, ) "
-        
+         "values(16, 10, 'commercial') "
+
 )
 
 data.append(
          "insert into flight_attendant "
          "(att_id, duty)  "
-         "values(16, 'host') " )       
-data.append(       
+         "values(17, 'host') " )
+data.append(
          "insert into flight_attendant "
          "(att_id, duty)  "
-         "values(17, 'hostess') ")        
-data.append(       
+         "values(18, 'hostess') ")
+data.append(
          "insert into flight_attendant "
          "(att_id, duty)  "
-         "values(18, 'hostess') " )       
-data.append(       
+         "values(19, 'hostess') " )
+data.append(
          "insert into flight_attendant "
          "(att_id, duty)  "
-         "values(19, 'host') ")        
-data.append(       
+         "values(20, 'host') ")
+data.append(
          "insert into flight_attendant "
          "(att_id, duty)  "
-         "values(20, 'hostess') "        
+         "values(21, 'hostess') "
 )
 
 data.append(
-         "insert into ticket_staff "
-         "(staff_id, ticket_count)  "
-         "values(12, 54621) ")
-data.append(       
-         "insert into ticket_staff "
-         "(staff_id, ticket_count)  "
-         "values(13, 12334) "
-        
+         "insert into ticket_staff"
+         "(ticket_staff_id, ticket_count)  "
+         "values(22, 54621) ")
+data.append(
+         "insert into ticket_staff"
+         "(ticket_staff_id, ticket_count)  "
+         "values(23, 12334) "
+
 )
 
 data.append(
-         "insert into store_staff "
+         "insert into store_staff"
          "(store_staff_id, sale_count, store_id)  "
-         "values(14, 4474, 1) " )       
-data.append(       
-         "insert into store_staff "
+         "values(24, 4474, 1) " )
+data.append(
+         "insert into store_staff"
          "(store_staff_id, sale_count, store_id)  "
-         "values(15, 9865, 2) "        
+         "values(25, 9865, 2) "
 )
 
 data.append(
          "insert into promotion "
          "(pass_id, prom_id, amount)  "
-         "values(1, 1, 123) " )       
+         "values(1, 1, 123) " )
 data.append(
          "insert into promotion "
          "(pass_id, prom_id, amount)  "
-         "values(2, 2, 12) " )       
-data.append(        
-         "insert into promotion "
-         "(pass_id, prom_id, amount)  "
-         "values(3, 3, 3) ")        
+         "values(2, 2, 12) " )
 data.append(
          "insert into promotion "
          "(pass_id, prom_id, amount)  "
-         "values(4, 4, 4444) ")        
-data.append(        
+         "values(3, 3, 3) ")
+data.append(
          "insert into promotion "
          "(pass_id, prom_id, amount)  "
-         "values(5, 5, 55) ")        
-data.append(        
+         "values(4, 4, 4444) ")
+data.append(
          "insert into promotion "
          "(pass_id, prom_id, amount)  "
-         "values(1, 6, 552) ")     
-data.append(       
+         "values(5, 5, 55) ")
+data.append(
          "insert into promotion "
          "(pass_id, prom_id, amount)  "
-         "values(2, 7, 535) ")        
-data.append(       
+         "values(1, 6, 552) ")
+data.append(
          "insert into promotion "
          "(pass_id, prom_id, amount)  "
-         "values(10, 8, 525) "        
-               
+         "values(2, 7, 535) ")
+data.append(
+         "insert into promotion "
+         "(pass_id, prom_id, amount)  "
+         "values(10, 8, 525) "
+
 )
 
 data.append(
          "insert into store_promotion "
          "(pass_id, prom_id, product_type)  "
-         "values(1, 6, 'alcohol') ")      
-data.append(       
+         "values(1, 6, 'alcohol') ")
+data.append(
          "insert into store_promotion "
          "(pass_id, prom_id, product_type)  "
-         "values(2, 7, 'normal') " )       
-data.append(       
+         "values(2, 7, 'normal') " )
+data.append(
          "insert into store_promotion "
          "(pass_id, prom_id, product_type)  "
-         "values(3, 8, 'normal') "        
+         "values(3, 3, 'normal') "
 )
 
 data.append(
          "insert into food_promotion "
          "(pass_id, prom_id, food_type)  "
-         "values(4, 1, 'drink') ")        
-data.append(       
+         "values(4, 4, 'drink') ")
+data.append(
          "insert into food_promotion "
          "(pass_id, prom_id, food_type)  "
-         "values(5, 2, 'meal') ")        
-data.append(       
+         "values(5, 5, 'meal') ")
+data.append(
          "insert into food_promotion "
          "(pass_id, prom_id, food_type)   "
-         "values(6, 3, 'meal') "        
+         "values(10, 8, 'meal') "
 )
 
 data.append(
          "insert into flight_promotion "
          "(pass_id, prom_id, domestic)  "
-         "values(7, 4, true) ")
-data.append(      
+         "values(1, 1, true) ")
+data.append(
          "insert into flight_promotion "
          "(pass_id, prom_id, domestic)  "
-         "values(8, 5, false) "        
-        
+         "values(2, 2, false) "
+
 )
 
 data.append(
          "insert into promotion_deadline "
          "(amount, deadline)  "
-         "values(123, '2018-01-21') ")                
+         "values(123, '2018-01-21') ")
 data.append(
          "insert into promotion_deadline "
          "(amount, deadline)  "
-         "values(1233, '2017-07-01') ")                
-data.append(      
+         "values(12, '2017-07-01') ")
+data.append(
          "insert into promotion_deadline "
          "(amount, deadline)  "
-         "values(444, '2017-06-01') ")                
-data.append(      
+         "values(3, '2017-06-01') ")
+data.append(
          "insert into promotion_deadline "
          "(amount, deadline)  "
-         "values(666, '2018-04-01') "  )
-data.append(     
+         "values(4444, '2018-04-01') "  )
+data.append(
          "insert into promotion_deadline "
          "(amount, deadline)  "
-         "values(444, '2017-03-01') " )               
+         "values(55, '2017-01-01') " )
+data.append(
+         "insert into promotion_deadline "
+         "(amount, deadline)  "
+         "values(552, '2017-05-01') " )
+data.append(
+         "insert into promotion_deadline "
+         "(amount, deadline)  "
+         "values(535, '2017-04-01') " )
+data.append(
+         "insert into promotion_deadline "
+         "(amount, deadline)  "
+         "values(525, '2017-03-01') " )
 
+data.append(
+         "insert into plane_model "
+         "(model, capacity, plane_range, altitude)  "
+         "values('Concorde', 120, 7250, 18.3) "   )
+data.append(
+         "insert into plane_model "
+         "(model, capacity, plane_range, altitude)  "
+         "values('Boeing 777', 450, 9700, 13.1) ")
+data.append(
+         "insert into plane_model "
+         "(model, capacity, plane_range, altitude)  "
+         "values('Airbus A380', 853, 15700, 13.1) "
+)
 
 data.append(
         # of planes = 7
          "insert into plane "
          "(model)  "
-         "values('Boeing 777') ")        
+         "values('Boeing 777') ")
 data.append(
          "insert into plane "
          "(model)  "
-         "values('Concorde') ")        
-data.append(       
+         "values('Concorde') ")
+data.append(
          "insert into plane "
          "(model)  "
-         "values('Concorde') " )       
-data.append(        
+         "values('Concorde') " )
+data.append(
          "insert into plane "
          "(model)  "
-         "values('Boeing 777') ")        
-data.append(       
+         "values('Boeing 777') ")
+data.append(
          "insert into plane "
          "(model)  "
-         "values('Airbus A380') " )       
-data.append(       
+         "values('Airbus A380') " )
+data.append(
          "insert into plane "
          "(model)  "
          "values('Airbus A380') ")
 data.append(
          "insert into plane "
          "(model)  "
-         "values('Concorde') "        
-                
-)
+         "values('Concorde') "
 
-data.append(
-         "insert into plane_model "
-         "(model, capacity, plane_range, altitude)  "
-         "values('Concorde', 120, 7250, 18.3) "   )     
-data.append(              
-         "insert into plane_model "
-         "(model, capacity, plane_range, altitude)  "
-         "values('Boeing 777', 450, 9700, 13.1) ")        
-data.append(       
-         "insert into plane_model "
-         "(model, capacity, plane_range, altitude)  "
-         "values('Airbus A380', 853, 15700, 13.1) "        
 )
-
 data.append(
-         "insert into flight "
-         "(date, plane_id, dep_airport_name, dep_city_name, dep_country, arr_airport_name, arr_city_name, arr_country, duration, econ_price, business_price, landed)  "
-         "values('2016-02-01 13:00:00', 1, 'Istanbul Ataturk Airport', 'Istanbul', 'Turkey', 'Ankara Esenboğa Airport', 'Ankara', 'Turkey', 0.4, 200, 500, true) ")       
-data.append(       
-         "insert into flight "
-         "(date, plane_id, dep_airport_name, dep_city_name, dep_country, arr_airport_name, arr_city_name, arr_country, duration, econ_price, business_price, landed)  "
-         "values('2016-05-01 13:00:00', 2, 'Istanbul Ataturk Airport', 'Istanbul', 'Turkey', 'John F. Kennedy International Airport', 'New York', 'United States', 14, 800, 2000, false) ")        
-data.append(       
-         "insert into flight "
-         "(date, plane_id, dep_airport_name, dep_city_name, dep_country, arr_airport_name, arr_city_name, arr_country, duration, econ_price, business_price, landed)  "
-         "values('2016-06-01 13:00:00', 3, 'Sabiha Gokcen International Airport', 'Istanbul', 'Turkey', 'Cape Town International Airport', 'Cape Town', 'South Africa', 9, 1600, 4000, false) ")        
-data.append(      
-         "insert into flight "
-         "(date, plane_id, dep_airport_name, dep_city_name, dep_country, arr_airport_name, arr_city_name, arr_country, duration, econ_price, business_price, landed)  "
-         "values('2016-08-05 06:00:00', 4, 'Narita International Airport', 'Tokyo', 'Japan', 'Ankara Esenboğa Airport', 'Ankara', 'Turkey', 10, 2400, 6000, false) ")        
-data.append(       
-         "insert into flight "
-         "(date, plane_id, dep_airport_name, dep_city_name, dep_country, arr_airport_name, arr_city_name, arr_country, duration, econ_price, business_price, landed)  "
-         "values('2016-08-05 14:00:00', 5, 'Ankara Esenboğa Airport', 'Ankara', 'Turkey', 'London City Airport', 'London', 'England', 5, 2400, 6000, false) ")        
-data.append(       
-         "insert into flight "
-         "(date, plane_id, dep_airport_name, dep_city_name, dep_country, arr_airport_name, arr_city_name, arr_country, duration, econ_price, business_price, landed)  "
-         "values('2016-08-05 14:00:00', 6, 'Ankara Esenboğa Airport', 'Ankara', 'Turkey', 'Cape Town International Airport', 'Cape Town', 'South Africa', 9, 2400, 6000, false) ")        
-data.append(       
-         "insert into flight "
-         "(date, plane_id, dep_airport_name, dep_city_name, dep_country, arr_airport_name, arr_city_name, arr_country, duration, econ_price, business_price, landed)  "
-         "values('2016-08-01 13:00:00', 7, ''Heathrow Airport', 'London', 'England', 'Sabiha Gokcen International Airport', 'Istanbul', 'Turkey', 5, 1600, 4000, false) ")        
-data.append(     
-         "insert into flight "
-         "(date, plane_id, dep_airport_name, dep_city_name, dep_country, arr_airport_name, arr_city_name, arr_country, duration, econ_price, business_price, landed)  "
-         "values('2016-09-01 13:00:00', 8, 'Sabiha Gokcen International Airport', 'Istanbul', 'Turkey', 'Beijing Nanyuan Airport', 'Beijing', 'China', 8, 1200, 3000, false) ")        
-data.append(      
-         "insert into flight "
-         "(date, plane_id, dep_airport_name, dep_city_name, dep_country, arr_airport_name, arr_city_name, arr_country, duration, econ_price, business_price, landed)  "
-         "values('2016-10-01 13:00:00', 9, 'Beijing Nanyuan Airport', 'Beijing', 'China', 'Haneda Airport', 'Tokyo', 'Japan', 2.5, 1000, 2500, false) ")        
-data.append(      
-         "insert into flight "
-         "(date, plane_id, dep_airport_name, dep_city_name, dep_country, arr_airport_name, arr_city_name, arr_country, duration, econ_price, business_price, landed)  "
-         "values('2016-03-01 13:00:00', 10, 'Haneda Airport', 'Tokyo', 'Japan', 'Cairo International Airport', 'Cairo', 'Egypt', 16, 1600, 4000, true) "        
+         "insert into plane "
+         "(model)  "
+         "values('Concorde') "
+
+)
+data.append(
+         "insert into plane "
+         "(model)  "
+         "values('Concorde') "
+
+)
+data.append(
+         "insert into plane "
+         "(model)  "
+         "values('Concorde') "
+
 )
 
 data.append(
          "insert into flight_arrival "
          "(date, duration, arrival)  "
-         "values('2016-02-01 13:00:00', 0.5, '2016-02-01 13:30:00') ")
+         "values('2016-02-01 13:00:00', 0.4, '2016-02-01 13:30:00') ")
 data.append(
          "insert into flight_arrival "
          "(date, duration, arrival)  "
@@ -1244,6 +1220,49 @@ data.append(
 )
 
 data.append(
+         "insert into flight "
+         "(date, plane_id, dep_airport_name, dep_city_name, dep_country, arr_airport_name, arr_city_name, arr_country, duration, econ_price, business_price, landed)  "
+         "values('2016-02-01 13:00:00', 1, 'Istanbul Ataturk Airport', 'Istanbul', 'Turkey', 'Ankara Esenboga Airport', 'Ankara', 'Turkey', 0.4, 200, 500, true) ")
+data.append(
+         "insert into flight "
+         "(date, plane_id, dep_airport_name, dep_city_name, dep_country, arr_airport_name, arr_city_name, arr_country, duration, econ_price, business_price, landed)  "
+         "values('2016-05-01 13:00:00', 2, 'Istanbul Ataturk Airport', 'Istanbul', 'Turkey', 'John F. Kennedy International Airport', 'New York', 'United States', 14, 800, 2000, false) ")
+data.append(
+         "insert into flight "
+         "(date, plane_id, dep_airport_name, dep_city_name, dep_country, arr_airport_name, arr_city_name, arr_country, duration, econ_price, business_price, landed)  "
+         "values('2016-08-05 14:00:00', 3, 'Sabiha Gokcen International Airport', 'Istanbul', 'Turkey', 'Cape Town International Airport', 'Cape Town', 'South Africa', 9, 1600, 4000, false) ")
+data.append(
+         "insert into flight "
+         "(date, plane_id, dep_airport_name, dep_city_name, dep_country, arr_airport_name, arr_city_name, arr_country, duration, econ_price, business_price, landed)  "
+         "values('2016-08-05 06:00:00', 4, 'Narita International Airport', 'Tokyo', 'Japan', 'Ankara Esenboga Airport', 'Ankara', 'Turkey', 10, 2400, 6000, false) ")
+data.append(
+         "insert into flight "
+         "(date, plane_id, dep_airport_name, dep_city_name, dep_country, arr_airport_name, arr_city_name, arr_country, duration, econ_price, business_price, landed)  "
+         "values('2016-08-05 14:00:00', 5, 'Ankara Esenboga Airport', 'Ankara', 'Turkey', 'London City Airport', 'London', 'England', 5, 2400, 6000, false) ")
+data.append(
+         "insert into flight "
+         "(date, plane_id, dep_airport_name, dep_city_name, dep_country, arr_airport_name, arr_city_name, arr_country, duration, econ_price, business_price, landed)  "
+         "values('2016-08-05 14:00:00', 6, 'Ankara Esenboga Airport', 'Ankara', 'Turkey', 'Cape Town International Airport', 'Cape Town', 'South Africa', 9, 2400, 6000, false) ")
+data.append(
+         "insert into flight "
+         "(date, plane_id, dep_airport_name, dep_city_name, dep_country, arr_airport_name, arr_city_name, arr_country, duration, econ_price, business_price, landed)  "
+         "values('2016-08-01 13:00:00', 7, 'Heathrow Airport', 'London', 'England', 'Sabiha Gokcen International Airport', 'Istanbul', 'Turkey', 5, 1600, 4000, false) ")
+data.append(
+         "insert into flight "
+         "(date, plane_id, dep_airport_name, dep_city_name, dep_country, arr_airport_name, arr_city_name, arr_country, duration, econ_price, business_price, landed)  "
+         "values('2016-09-01 13:00:00', 8, 'Sabiha Gokcen International Airport', 'Istanbul', 'Turkey', 'Beijing Nanyuan Airport', 'Beijing', 'China', 8, 1200, 3000, false) ")
+data.append(
+         "insert into flight "
+         "(date, plane_id, dep_airport_name, dep_city_name, dep_country, arr_airport_name, arr_city_name, arr_country, duration, econ_price, business_price, landed)  "
+         "values('2016-10-01 13:00:00', 9, 'Beijing Nanyuan Airport', 'Beijing', 'China', 'Haneda Airport', 'Tokyo', 'Japan', 2.5, 1000, 2500, false) ")
+data.append(
+         "insert into flight "
+         "(date, plane_id, dep_airport_name, dep_city_name, dep_country, arr_airport_name, arr_city_name, arr_country, duration, econ_price, business_price, landed)  "
+         "values('2016-03-01 13:00:00', 10, 'Haneda Airport', 'Tokyo', 'Japan', 'Cairo International Airport', 'Cairo', 'Egypt', 16, 1600, 4000, true) "
+)
+
+
+data.append(
          "insert into seat "
          "(flight_id, no, class)  "
          "values(1, 1, 'econ') ")
@@ -1251,91 +1270,91 @@ data.append(
          "insert into seat "
          "(flight_id, no, class)  "
          "values(1, 2, 'econ') ")
-data.append(       
+data.append(
          "insert into seat "
          "(flight_id, no, class)  "
          "values(1, 3, 'business') ")
-data.append(       
+data.append(
          "insert into seat "
          "(flight_id, no, class)  "
          "values(1, 4, 'business') ")
-data.append(       
+data.append(
          "insert into seat "
          "(flight_id, no, class)  "
          "values(2, 1, 'econ') ")
-data.append(       
+data.append(
          "insert into seat "
          "(flight_id, no, class)  "
          "values(2, 2, 'econ') ")
-data.append(       
+data.append(
          "insert into seat "
          "(flight_id, no, class)  "
          "values(2, 3, 'business') ")
-data.append(       
+data.append(
          "insert into seat "
          "(flight_id, no, class)  "
          "values(3, 1, 'econ') ")
-data.append(      
+data.append(
          "insert into seat "
          "(flight_id, no, class)  "
          "values(3, 2, 'business') ")
-data.append(      
+data.append(
          "insert into seat "
          "(flight_id, no, class)  "
          "values(4, 1, 'econ') ")
-data.append(       
+data.append(
          "insert into seat "
          "(flight_id, no, class)  "
          "values(4, 2, 'business') ")
-data.append(       
+data.append(
          "insert into seat "
          "(flight_id, no, class)  "
          "values(5, 1, 'econ') ")
-data.append(     
+data.append(
          "insert into seat "
          "(flight_id, no, class)  "
          "values(5, 2, 'business') ")
-data.append(     
+data.append(
          "insert into seat "
          "(flight_id, no, class)  "
          "values(6, 1, 'econ') ")
-data.append(     
+data.append(
          "insert into seat "
          "(flight_id, no, class)  "
          "values(6, 2, 'econ') ")
-data.append(     
+data.append(
          "insert into seat "
          "(flight_id, no, class)  "
          "values(6, 3, 'business') ")
-data.append(     
+data.append(
          "insert into seat "
          "(flight_id, no, class)  "
          "values(7, 1, 'econ') ")
-data.append(     
+data.append(
          "insert into seat "
          "(flight_id, no, class)  "
          "values(8, 1, 'econ') ")
-data.append(      
+data.append(
          "insert into seat "
          "(flight_id, no, class)  "
          "values(8, 2, 'econ') ")
-data.append(       
+data.append(
          "insert into seat "
          "(flight_id, no, class)  "
          "values(8, 3, 'business') ")
-data.append(      
+data.append(
          "insert into seat "
          "(flight_id, no, class)  "
          "values(9, 1, 'econ') ")
-data.append(     
+data.append(
          "insert into seat "
          "(flight_id, no, class)  "
          "values(9, 2, 'econ') ")
-data.append(      
+data.append(
          "insert into seat "
          "(flight_id, no, class)  "
          "values(9, 3, 'business') ")
-data.append(      
+data.append(
          "insert into seat "
          "(flight_id, no, class)  "
          "values(10, 1, 'econ') ")
@@ -1343,155 +1362,152 @@ data.append(
          "insert into seat "
          "(flight_id, no, class)  "
          "values(10, 2, 'econ') ")
-data.append(      
+data.append(
          "insert into seat "
          "(flight_id, no, class)  "
          "values(10, 3, 'business') "
-        
+
 )
 
 data.append(
          "insert into menu_option "
          "(flight_id, option_id, option_name, price)  "
-         "values(2, 1, 'Kebap', 32.1) ")        
-data.append(       
+         "values(3, 1, 'Kebap', 32.1) ")
+data.append(
          "insert into menu_option "
          "(flight_id, option_id, option_name, price)  "
-         "values(3, 2, 'pizza', 42.1) ")        
-data.append(      
+         "values(3, 2, 'pizza', 42.1) ")
+data.append(
          "insert into menu_option "
          "(flight_id, option_id, option_name, price)  "
-         "values(4, 3, 'breakfast', 12.1) ")        
-data.append(       
+         "values(4, 3, 'breakfast', 12.1) ")
+data.append(
          "insert into menu_option "
          "(flight_id, option_id, option_name, price)  "
-         "values(5, 4, 'dailyspec', 54.3) "        
-        
+         "values(5, 4, 'dailyspec', 54.3) "
+
 )
 
 data.append(
          "insert into reservation "
          "(flight_id, pass_id, deadline, seat_no)  "
-         "values(5, 1, '2016-03-01 13:00:00', 1) ")        
-data.append(       
+         "values(1, 1, '2016-03-01 13:00:00', 1) ")
+data.append(
          "insert into reservation "
          "(flight_id, pass_id, deadline, seat_no)  "
-         "values(5, 2, '2016-03-01 13:00:00', 2) ")        
-data.append(       
+         "values(5, 1, '2016-03-01 13:00:00', 1) ")
+data.append(
          "insert into reservation "
          "(flight_id, pass_id, deadline, seat_no)  "
-         "values(6, 3, '2016-03-01 13:00:00', 1) ")        
-data.append(        
+         "values(5, 2, '2016-03-01 13:00:00', 2) ")
+data.append(
          "insert into reservation "
          "(flight_id, pass_id, deadline, seat_no)  "
-         "values(7, 4, '2016-03-01 13:00:00', 1) " )       
-data.append(        
+         "values(6, 3, '2016-03-01 13:00:00', 1) ")
+data.append(
          "insert into reservation "
          "(flight_id, pass_id, deadline, seat_no)  "
-         "values(8, 5, '2016-03-01 13:00:00', 1) ")        
-data.append(        
+         "values(7, 4, '2016-03-01 13:00:00', 1) " )
+data.append(
          "insert into reservation "
          "(flight_id, pass_id, deadline, seat_no)  "
-         "values(8, 6, '2016-03-01 13:00:00', 2) ")        
-data.append(        
+         "values(8, 5, '2016-03-01 13:00:00', 1) ")
+data.append(
          "insert into reservation "
          "(flight_id, pass_id, deadline, seat_no)  "
-         "values(3, 6, '2016-03-01 13:00:00', 2) "        
+         "values(8, 6, '2016-03-01 13:00:00', 2) ")
+data.append(
+         "insert into reservation "
+         "(flight_id, pass_id, deadline, seat_no)  "
+         "values(3, 6, '2016-03-01 13:00:00', 2) "
 )
 
 data.append(
          "insert into pass_history "
          "(flight_id, pass_id)  "
-         "values(1, 3) "  )      
-data.append(        
+         "values(1, 3) "  )
+data.append(
          "insert into pass_history "
          "(flight_id, pass_id)  "
-         "values(1, 5) " )       
-data.append(       
+         "values(1, 5) " )
+data.append(
          "insert into pass_history "
          "(flight_id, pass_id)  "
-         "values(1, 2) ")        
-data.append(       
+         "values(1, 2) ")
+data.append(
          "insert into pass_history "
          "(flight_id, pass_id)  "
-         "values(10, 1) ")        
-        
-
+         "values(10, 1) ")
 
 data.append(
          "insert into pers_history "
          "(flight_id, flight_pers_id)  "
-         "values(1, 16) " )       
-data.append(       
+         "values(10, 20) "
+)
+data.append(
          "insert into pers_history "
          "(flight_id, flight_pers_id)  "
-         "values(1, 18) ")        
-data.append(       
+         "values(1, 16) "
+)
+data.append(
          "insert into pers_history "
          "(flight_id, flight_pers_id)  "
-         "values(1, 17) ")        
-data.append(      
+         "values(1, 17) "
+)
+data.append(
          "insert into pers_history "
          "(flight_id, flight_pers_id)  "
-         "values(10, 20) "        
+         "values(1, 18) "
 )
 
 data.append(
          "insert into flight_pilot "
          "(flight_id, pilot_id)  "
-         "values(1, 21) ")     
-data.append(      
+         "values(1, 12) ")
+data.append(
          "insert into flight_pilot "
          "(flight_id, pilot_id)  "
-         "values(10, 25) " )       
-data.append(      
+         "values(10, 13) " )
+data.append(
          "insert into flight_pilot "
          "(flight_id, pilot_id)  "
-         "values(1, 22) "        
-        
+         "values(1, 14) "
+
 )
 
 data.append(
          "insert into flight_att "
          "(flight_id, att_id)  "
-         "values(2, 16) " )       
-data.append(      
-         "insert into flight_att "
-         "(flight_id, att_id)  "
-         "values(2, 17) ")        
-data.append(               
+         "values(2, 17) ")
+data.append(
          "insert into flight_att "
          "(flight_id, att_id)  "
          "values(3, 18) ")
 data.append(
          "insert into flight_att "
          "(flight_id, att_id)  "
-         "values(3, 19) ")        
+         "values(3, 19) ")
 data.append(
          "insert into flight_att "
          "(flight_id, att_id)   "
-         "values(4, 20) ")        
-data.append(       
+         "values(4, 20) ")
+data.append(
          "insert into flight_att "
          "(flight_id, att_id) "
-         "values(4, 16) ")        
-data.append(       
+         "values(5, 19) ")
+data.append(
          "insert into flight_att "
          "(flight_id, att_id) "
-         "values(5, 19) ")        
-data.append(        
+         "values(5, 17) ")
+data.append(
          "insert into flight_att "
          "(flight_id, att_id) "
-         "values(5, 17) ")        
-data.append(       
+         "values(6, 18) " )
+data.append(
          "insert into flight_att "
          "(flight_id, att_id) "
-         "values(6, 18) " )       
-data.append(      
-         "insert into flight_att "
-         "(flight_id, att_id) "
-         "values(6, 19) " )       
-data.append(      
+         "values(6, 19) " )
+data.append(
          "insert into flight_att "
          "(flight_id, att_id) "
          "values(7, 20) ")
@@ -1499,51 +1515,47 @@ data.append(
          "insert into flight_att "
          "(flight_id, att_id) "
          "values(8, 19) "        )
-data.append(       
+data.append(
          "insert into flight_att "
          "(flight_id, att_id) "
          "values(9, 18) "        )
-data.append(       
+data.append(
          "insert into flight_att "
          "(flight_id, att_id) "
          "values(9, 17) ")
 
 data.append(
          "insert into ticket "
-         "(ticket_id, flight_id, pass_id, staff_id, seat_no, luggage) "
-         "values(1, 2, 1, 12, 1); " )       
-data.append(        
-         "insert into ticket "
-         "(ticket_id, flight_id, pass_id, staff_id, seat_no, luggage) "
-         "values(2, 3, 2, 12, 1); ")       
+         "(flight_id, pass_id, staff_id, seat_no, luggage, price) "
+         "values(1, 1, 22, 1, 1, 40); " )
 data.append(
          "insert into ticket "
-         "(ticket_id, flight_id, pass_id, staff_id, seat_no, luggage) "
-         "values(3, 4, 3, 12, 1); ")       
+         "(flight_id, pass_id, staff_id, seat_no, luggage, price) "
+         "values(5, 1, 22, 1, 1, 40); " )
 data.append(
          "insert into ticket "
-         "(ticket_id, flight_id, pass_id, staff_id, seat_no, luggage) "
-         "values(4, 4, 4, 12, 2); ")  
+         "(flight_id, pass_id, staff_id, seat_no, luggage, price) "
+         "values(5, 2, 22, 2, 1, 30); ")
 data.append(
          "insert into ticket "
-         "(ticket_id, flight_id, pass_id, staff_id, seat_no, luggage) "
-         "values(5, 6, 5, 12, 2); ")   
+         "(flight_id, pass_id, staff_id, seat_no, luggage, price) "
+         "values(6, 3, 22, 1, 1, 20); ")
 data.append(
          "insert into ticket "
-         "(ticket_id, flight_id, pass_id, staff_id, seat_no, luggage) "
-         "values(6, 6, 6, 13, 3); ")    
+         "(flight_id, pass_id, staff_id, seat_no, luggage, price) "
+         "values(7, 4, 23, 1, 2, 100); ")
 data.append(
          "insert into ticket "
-         "(ticket_id, flight_id, pass_id, staff_id, seat_no, luggage) "
-         "values(7, 8, 7, 13, 3); ")     
+         "(flight_id, pass_id, staff_id, seat_no, luggage, price) "
+         "values(8, 5, 23, 1, 2, 140); ")
 data.append(
          "insert into ticket "
-         "(ticket_id, flight_id, pass_id, staff_id, seat_no, luggage) "
-         "values(8, 9, 8, 13, 1); ")      
+         "(flight_id, pass_id, staff_id, seat_no, luggage, price) "
+         "values(8, 6, 23, 2, 3, 50); ")
 data.append(
          "insert into ticket "
-         "(ticket_id, flight_id, pass_id, staff_id, seat_no, luggage) "
-         "values(9, 9, 11, 12, 2); ")        
+         "(flight_id, pass_id, staff_id, seat_no, luggage, price) "
+         "values(3, 6, 22, 2, 3, 40); ")
 
 for sql in data:
     try:
@@ -1554,9 +1566,79 @@ for sql in data:
             print( "already exists. ")
         else:
             print(err.msg)
-    else:
-        pass
 
-conn.commit()		
+conn.commit()
+
+trigger = []
+
+trigger.append("create procedure insert_ticket_trigger(new_price numeric(6,2), new_pass_id int, new_flight_id int) "
+               "BEGIN insert into pass_history values(new_pass_id, new_flight_id);"
+               "update passenger set expenditure = expenditure + new_price where pass_id = new_pass_id; END")
+
+trigger.append("create procedure update_flight_trigger(new_date DATETIME, new_duration numeric(5,2), new_id int, new_landed binary) "
+               "BEGIN update flight_arrival set arrival = new_date + new_duration;"
+               " delete from flight_att where flight_id = new_id and new_landed = 1;"
+               " delete from flight_pilot where flight_id = new_id and new_landed = 1; END")
+
+#trigger.append( "create trigger update_flight after update on flight for each row  "
+#                "call insert_flight_trigger(new.date, new.duration, new.flight_id, new.landed) ")
+
+trigger.append( "create trigger luggage_expenditure after update on ticket for each row begin  "
+                "if old.luggage > 20 then update passenger set expenditure = expenditure +  "
+                "(new.luggage - old.luggage) * 10 where new.luggage > 20 and pass_id = new.pass_id;  "
+                "else update passenger set expenditure = expenditure + (new.luggage - 20) * 10  "
+                "where new.luggage > 20 and pass_id = new.pass_id; end if; end ")
+
+trigger.append( "create trigger insert_ticket after insert on ticket  "
+                "for each row call insert_ticket_trigger(new.price, new.pass_id, new.flight_id)")
+
+trigger.append( "create trigger delete_pass_history after delete on ticket  "
+                "for each row delete from pass_history where flight_id = old.flight_id  "
+                "and pass_id = old.pass_id ")
+
+trigger.append( "create trigger add_att_history after insert on flight_att for each row  "
+                "insert into pers_history values(new.att_id, new.flight_id) ")
+
+trigger.append( "create trigger add_pilot_history after insert on flight_pilot for each row  "
+                "insert into pers_history values(new.pilot_id, new.flight_id) ")
+
+trigger.append("create procedure delete_person_trigger(old_person_id int) "
+               "BEGIN delete from person_phone where person_id = old_person_id;"
+               "delete from person_email where person_id = old_person_id;"
+               "delete from passenger where pass_id = old_person_id;"
+               "delete from staff where staff_id = old_person_id;"
+               "delete from flight_personnel where flight_pers_id = old_person_id;"
+               "delete from pilot where pilot_id = old_person_id;"
+               "delete from flight_attendant where att_id = old_person_id;"
+               "delete from ticket_staff where ticket_staff_id = old_person_id;"
+               "delete from store_staff where store_staff_id = old_person_id; END")
+
+trigger.append( "create trigger delete_person after delete on person for each row "
+                "call delete_person_trigger(old.person_id)")
+
+for sql in trigger:
+    try:
+        cursor.execute(sql)
+    except mysql.connector.Error as err:
+        if err.errno == errorcode.ER_TABLE_EXISTS_ERROR:
+            print( "already exists. ")
+        else:
+            print(err.msg)
+
+index = []
+index.append("CREATE INDEX email_index USING BTREE ON person_email(email)")
+index.append("CREATE INDEX source_city_index USING BTREE ON flight(dep_city_name)")
+index.append("CREATE INDEX dest_city_index USING BTREE ON flight(arr_city_name)")
+index.append("CREATE INDEX plane_range_index USING BTREE ON plane_model(plane_range)")
+
+for sql in index:
+    try:
+        cursor.execute(sql)
+    except mysql.connector.Error as err:
+        if err.errno == errorcode.ER_TABLE_EXISTS_ERROR:
+            print( "already exists. ")
+        else:
+            print(err.msg)
+
 cursor.close();
 conn.close();

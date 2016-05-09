@@ -1,0 +1,26 @@
+    <table class="table table-bordered">
+        <thead>
+            <tr>
+                <th>Passenger ID</th>
+                <th>Promotion ID</th>
+                <th>Value</th>
+                <th class="text-nowrap">Action</th>
+            </tr>
+        </thead>
+        <tbody id = "tableBody">
+            {% for entry in data %}
+            <tr>
+                <td>{{entry.pass_id}}</td>
+                <td>{{entry.promotion_id}}</td>
+                <td>{{entry.value}}</td>
+                <td class="text-nowrap">
+                    <button type="button" class="removeButton btn btn-sm btn-icon btn-flat btn-default" data-toggle="tooltip" data-original-title="Remove">
+                        <i class="icon fa-trash-o" aria-hidden="true"></i>
+                        <input type="hidden" id="promotionPassengerID" value="{{entry.pass_id}}">
+                        <input type="hidden" id="promotionPromotionID" value="{{entry.flight_id}}">
+                    </button>
+                </td>
+            </tr>
+            {% endfor %}
+        </tbody>
+    </table>

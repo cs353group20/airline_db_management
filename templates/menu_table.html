@@ -1,0 +1,18 @@
+<table class="table table-bordered" id="menuTable">
+    <thead>
+        <tr>
+            <th>ID</th>
+            <th>Name</th>
+            <th>Price(TL)</th>
+        </tr>
+    </thead>
+    <tbody>
+        {% for entry in data %}
+        <tr>
+            <td> {{entry.id}}</td>
+            <td> {{entry.name}}</td>
+            <td> {{entry.price}}</td>
+        </tr>
+        {% endfor %}
+    </tbody>
+</table>

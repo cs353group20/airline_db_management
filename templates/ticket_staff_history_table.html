@@ -1,0 +1,26 @@
+<table class="table table-bordered">
+            <thead>
+                <tr>
+                    <th>Flight ID</th>
+                    <th>Date</th>
+                    <th>Departure Time</th>
+                    <th>ETA*</th>
+                    <th>From</th>
+                    <th>To</th>
+                    <th>Duration(hr)</th>
+                </tr>
+            </thead>
+            <tbody id = "tableBody">
+                {% for entry in data %}
+                <tr>
+                    <td>{{entry.flight_id}}</td>
+                    <td>{{entry.date}}</td>
+                    <td>{{entry.departure}}</td>
+                    <td>{{entry.eta}}</td>
+                    <td>{{entry.from}}</td>
+                    <td>{{entry.to}}</td>
+                    <td>{{entry.duration}}</td>
+                </tr>
+                {% endfor %}
+        </tbody>
+    </table>

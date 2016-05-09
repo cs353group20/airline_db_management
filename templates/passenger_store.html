@@ -1,0 +1,42 @@
+{% extends "layout.html" %} {% block title %}Flights{% endblock %} {% block css %}
+<link rel="stylesheet" href="/static/assets/examples/css/forms/layouts.css">
+<link rel="stylesheet" href="/static/assets/examples/css/uikit/modals.css">
+<link rel="stylesheet" href="/static/assets/examples/css/uikit/icon.css"> {% endblock %} {% block content %}
+<div class="page-content">
+    <div class="row padding-vertical-30">
+        <div class="col-sm-12 text-center">
+            <h2>Search Airport Stores</h2>
+            <form role="search">
+                <div class="input-search">
+                    <input type="text" class="form-control round" placeholder="From:" id="storeName" name="storeName" >
+                </div>
+                <button type="button" class="btn btn-primary" id="searchButton">Search</button>
+            </form>
+        </div>
+    </div>
+    <div class="panel invisible" id="tablePanel">
+        <div class="panel-body container-fluid" id="tablePanelInner">
+        </div>
+    </div>
+</div>
+
+{% endblock %}
+{% block js %}
+{% endblock %}
+{% block jquery %}
+<script>
+  (function(document, window, $) {
+    'use strict';
+    var cols = ['flight_id', 'date', 'departure', 'eta', 'from', 'to', 'duration', 'class', 'price'];
+    $("#searchButton").click(function() {
+        var storeName = $("#storeName").val();
+        $.post("/passenger/store", {storeName: storeName})
+            .done(function(data){
+                $('#tablePanelInner').html(data);
+                $("#tablePanel").removeClass("invisible");
+            });
+    });
+    {% include 'message.html' %}
+  })(document, window, jQuery);
+ </script>
+{% endblock %}

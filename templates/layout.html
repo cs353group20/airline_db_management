@@ -6,7 +6,7 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=0, minimal-ui">
   <meta name="description" content="bootstrap admin template">
   <meta name="author" content="">
-  <title>Register | Airline DB Management System</title>
+  <title>{% block title %} {% endblock %} | Airline DB Management System</title>
   <link rel="apple-touch-icon" href="/static/assets/images/apple-touch-icon.png">
   <link rel="shortcut icon" href="/static/assets/images/favicon.ico">
   <!-- Stylesheets -->
@@ -19,10 +19,14 @@
   <link rel="stylesheet" href="/static/global/vendor/switchery/switchery.css">
   <link rel="stylesheet" href="/static/global/vendor/intro-js/introjs.css">
   <link rel="stylesheet" href="/static/global/vendor/slidepanel/slidePanel.css">
+  <link rel="stylesheet" href="/static/global/vendor/toastr/toastr.css">
+  <link rel="stylesheet" href="/static/assets/examples/css/advanced/toastr.css">
   <link rel="stylesheet" href="/static/global/vendor/flag-icon-css/flag-icon.css">
-  <link rel="stylesheet" href="/static/assets/examples/css/pages/register.css">
+  {% block css %}
+  {% endblock %}
   <!-- Fonts -->
   <link rel="stylesheet" href="/static/global/fonts/web-icons/web-icons.min.css">
+  <link rel="stylesheet" href="/static/global/fonts/font-awesome/font-awesome.min.css">
   <link rel="stylesheet" href="/static/global/fonts/brand-icons/brand-icons.min.css">
   <link rel='stylesheet' href='http://fonts.googleapis.com/css?family=Roboto:300,400,500,300italic'>
   <!--[if lt IE 9]>
@@ -39,68 +43,59 @@
   Breakpoints();
   </script>
 </head>
-<body class="page-register layout-full page-dark">
+<body class="site-navbar-small ">
   <!--[if lt IE 8]>
         <p class="browserupgrade">You are using an <strong>outdated</strong> browser. Please <a href="http://browsehappy.com/">upgrade your browser</a> to improve your experience.</p>
     <![endif]-->
-  <!-- Page -->
-  <div class="page animsition vertical-align text-center" data-animsition-in="fade-in"
-  data-animsition-out="fade-out">
-    <div class="page-content vertical-align-middle">
-      <div class="brand">
-        <img class="brand-img" src="/static/assets//images/logo.png" alt="...">
-        <h2 class="brand-text">Airline DB Management System</h2>
+  <nav class="site-navbar navbar navbar-default navbar-fixed-top navbar-mega navbar-inverse"
+  role="navigation">
+    <div class="navbar-header">
+      <a class="navbar-brand navbar-brand-center" href="../index.html">
+        <img class="navbar-brand-logo navbar-brand-logo-normal" src="/static/assets/images/logo.png"
+        title="Remark">
+        <img class="navbar-brand-logo navbar-brand-logo-special" src="/static/assets/images/logo-blue.png"
+        title="Remark">
+        <span class="navbar-brand-text"> Airline DB </span>
+      </a>
+    </div>
+    <div class="navbar-container container-fluid">
+    </div>
+  </nav>
+  <div class="site-menubar">
+    <div class="site-menubar-body">
+      <div>
+        <div>
+          <ul class="site-menu">
+            <li class="site-menu-category">General</li>
+            {% for item in menu %}
+            <li class="site-menu-item">
+              <a href="{{ item.link }}" data-dropdown-toggle="false">
+                <i class="site-menu-icon {{ item.icon }}" aria-hidden="true"></i>
+                <span class="site-menu-title">{{ item.title }}</span>
+                <span class="site-menu-arrow"></span>
+              </a>
+            </li>
+            {% endfor %}
+          </ul>
+        </div>
       </div>
-      <p>Sign up to buy from best prices avaible</p>
-      <form method="post" action="/signup" role="form">
-        <div class="form-group">
-          <label class="sr-only" for="inputName">Name</label>
-          <input type="text" class="form-control" id="inputName" name="name" placeholder="Name">
-        </div>
-        <div class="form-group">
-          <label class="sr-only" for="inputEmail">Email</label>
-          <input type="email" class="form-control" id="inputEmail" name="email" placeholder="Email">
-        </div>
-        <div class="form-group">
-          <label class="sr-only" for="inputPassword">Password</label>
-          <input type="password" class="form-control" id="inputPassword" name="password"
-          placeholder="Password">
-        </div>
-        <div class="form-group">
-          <label class="sr-only" for="inputPasswordCheck">Retype Password</label>
-          <input type="password" class="form-control" id="inputPasswordCheck" name="passwordCheck"
-          placeholder="Confirm Password">
-        </div>
-        <div class="form-group">
-          <label class="sr-only" for="inputStreetNumber">Street Number</label>
-          <input type="text" class="form-control" id="inputStreetNumber" name="street_number" placeholder="Street Number">
-        </div>
-        <div class="form-group">
-          <label class="sr-only" for="inputStreet">Street</label>
-          <input type="text" class="form-control" id="inputStreet" name="street" placeholder="Street">
-        </div>
-        <div class="form-group">
-          <label class="sr-only" for="inputTown">Town</label>
-          <input type="text" class="form-control" id="inputTown" name="town" placeholder="Town">
-        </div>
-        <div class="form-group">
-          <label class="sr-only" for="inputCity">City</label>
-          <input type="text" class="form-control" id="inputCity" name="city" placeholder="City">
-        </div>
-        <div class="form-group">
-          <label class="sr-only" for="inputPhone">Phone</label>
-          <input type="text" class="form-control" id="inputPhone" name="phone" placeholder="Phone">
-        </div>
-        <button type="submit" class="btn btn-primary btn-block">Register</button>
-      </form>
-      <p>Have account already? Please go to <a href="/login">Sign In</a></p>
-      <footer class="page-copyright page-copyright-inverse">
-        <p>WEBSITE BY cs353-group20</p>
-        <p>© 2016. All RIGHT RESERVED.</p>
-      </footer>
     </div>
   </div>
+  <!-- Page -->
+
+  <div class="page animsition">
+    {% block content %}
+    {% endblock %}
+
+  </div>
   <!-- End Page -->
+  <!-- Footer -->
+  <footer class="site-footer">
+    <div class="site-footer-legal">© 2016 <a href="http://cs353group20.github.io/">Airline DB Management System</a></div>
+    <div class="site-footer-right">
+      Crafted with <i class="red-600 wb wb-heart"></i> by <a href="http://cs353group20.github.io/">cs353-group20</a>
+    </div>
+  </footer>
   <!-- Core  -->
   <script src="/static/global/vendor/jquery/jquery.js"></script>
   <script src="/static/global/vendor/bootstrap/bootstrap.js"></script>
@@ -128,7 +123,18 @@
   <script src="/static/global/js/components/slidepanel.js"></script>
   <script src="/static/global/js/components/switchery.js"></script>
   <script src="/static/global/js/components/jquery-placeholder.js"></script>
-  <script src="/static/global/js/components/animate-list.js"></script>
+  <script src="/static/global/vendor/toastr/toastr.js"></script>
+  <script src="/static/global/js/components/toastr.js"></script>
+{% if session.user_type == 'admin' %}
+<script>
+  (function(document, window, $) {
+    'use strict';
+    {% include 'message.html' %}
+  })(document, window, jQuery);
+ </script>
+{% endif %}
+  {% block js %}
+  {% endblock %}
   <script>
   (function(document, window, $) {
     'use strict';
@@ -138,5 +144,7 @@
     });
   })(document, window, jQuery);
   </script>
+  {% block jquery %}
+  {% endblock %}
 </body>
 </html>

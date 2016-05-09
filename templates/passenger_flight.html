@@ -1,0 +1,126 @@
+{% extends "layout.html" %} {% block title %}Flights{% endblock %} {% block css %}
+<link rel="stylesheet" href="/static/assets/examples/css/forms/layouts.css">
+<link rel="stylesheet" href="/static/assets/examples/css/uikit/modals.css">
+<link rel="stylesheet" href="/static/assets/examples/css/uikit/icon.css"> {% endblock %} {% block content %}
+<div class="page-content">
+    <div class="row padding-vertical-30">
+        <div class="col-sm-12 text-center">
+            <h2>Search Flights</h2>
+            <form role="search">
+                <div class="input-search">
+                    <input type="text" class="form-control round" placeholder="From:" id="fromInput">
+                </div>
+                <div class="input-search">
+                    <input type="text" class="form-control round" placeholder="To" id="toInput">
+                </div>
+                <button type="button" class="btn btn-primary" id="searchButton">Search</button>
+            </form>
+        </div>
+    </div>
+    <div class="panel invisible" id="tablePanel">
+        <div class="panel-body container-fluid" id="tablePanelInner">
+        </div>
+    </div>
+</div>
+<div class="modal fade" id="menuModal" aria-hidden="true" aria-labelledby="menuModal" role="dialog" tabindex="-1">
+    <div class="modal-dialog modal-center">
+        <div class="modal-content">
+            <div class="modal-header">
+                <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                    <span aria-hidden="true">×</span>
+                </button>
+                <h4 class="modal-title">Menu Options</h4>
+            </div>
+            <div class="modal-body" id="menuModalBody">
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-default" data-dismiss="modal">Close</button>
+            </div>
+        </div>
+    </div>
+</div>
+<div class="modal fade" id="buyModal" aria-hidden="true" aria-labelledby="buyModal" role="dialog" tabindex="-1">
+    <div class="modal-dialog modal-center">
+        <div class="modal-content">
+            <div class="modal-header">
+                <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                    <span aria-hidden="true">×</span>
+                </button>
+                <h4 class="modal-title">Buy Ticket For</h4>
+            </div>
+            <form class="form-horizontal" method="post" action="/passenger/buy">
+            <div class="modal-body">
+                <p id="feeField">The fee is 500 TALA<p>
+                    <input type="hidden" id="buyflightID" name="flightID">
+                    <div class="form-group">
+                      <label class="col-sm-3 control-label">Credit Card Number: </label>
+                      <div class="col-sm-9">
+                        <input type="text" class="form-control" name="card_number" placeholder="Credit Card Number" autocomplete="off"/>
+                      </div>
+                    </div>
+                    <div class="form-group">
+                      <label class="col-sm-3 control-label">Card Owner Name:</label>
+                      <div class="col-sm-9">
+                        <input type="text" class="form-control" name="owner_name" placeholder="Owner Name" autocomplete="off"/>
+                      </div>
+                    </div>
+                    <div class="form-group">
+                      <label class="col-sm-3 control-label">Security Number: </label>
+                      <div class="col-sm-9">
+                        <input type="text" class="form-control" name="ccv" placeholder="CCV" autocomplete="off"/>
+                      </div>
+                    </div>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-default" data-dismiss="modal">Cancel</button>
+                <button type="submit" class="btn btn-primary">Purchase</button>
+            </div>
+        </form>
+        </div>
+    </div>
+</div>
+
+{% endblock %}
+{% block js %}
+{% endblock %}
+{% block jquery %}
+<script>
+  (function(document, window, $) {
+    'use strict';
+    var cols = ['flight_id', 'date', 'departure', 'eta', 'from', 'to', 'duration', 'class', 'price'];
+    $(document).on('click', '.buyButton', function(){
+        var fee = $(this).find("#fee").val();
+        var flightID = $(this).find('#flightID').val();
+        $("#feeField").text("The fee is " + fee + " TL");
+        $("#buyflightID").val(flightID);
+
+    });
+    $(document).on('click', '.menuButton', function(){
+        var flightID = $(this).find('#menuflightID').val();
+        $("#menuModalBody").empty();
+        $.post('/passenger/menu', {flightID: flightID})
+            .done(function(data) {
+                $('#menuModalBody').html(data);
+            });
+    });
+    $(document).on('click', '.reserveButton', function(){
+        var flightID = $(this).find('#reserveflightID').val();
+        $.post('/passenger/reserve', {flightID: flightID})
+            .done(function(data) {
+                var val = JSON.parse(data);
+                toastr[val['type']](val['str']);
+            });
+    });
+    $("#searchButton").click(function() {
+        var t = $("#toInput").val();
+        var f = $("#fromInput").val();
+        $.post("/passenger/flights", {toInput: t, fromInput: f})
+            .done(function(data){
+                $('#tablePanelInner').html(data);
+                $("#tablePanel").removeClass("invisible");
+            });
+    });
+    {% include 'message.html' %}
+  })(document, window, jQuery);
+ </script>
+{% endblock %}

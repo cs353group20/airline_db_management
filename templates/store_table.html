@@ -1,0 +1,18 @@
+    <table class="table table-bordered">
+        <thead>
+            <tr>
+                <th>Airport</th>
+                <th>Store</th>
+                <th>Owner</th>
+            </tr>
+        </thead>
+        <tbody id = "tableBody">
+            {% for entry in data %}
+            <tr>
+                <td>{{entry.airport}}</td>
+                <td>{{entry.store_name}}</td>
+                <td>{{entry.owner}}</td>
+            </tr>
+            {% endfor %}
+        </tbody>
+    </table>

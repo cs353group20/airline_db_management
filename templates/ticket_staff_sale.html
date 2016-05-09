@@ -1,0 +1,88 @@
+{% extends "layout.html" %} {% block title %}Flights{% endblock %} {% block css %}
+<link rel="stylesheet" href="/static/assets/examples/css/forms/layouts.css">
+<link rel="stylesheet" href="/static/assets/examples/css/uikit/modals.css">
+<link rel="stylesheet" href="/static/assets/examples/css/uikit/icon.css"> {% endblock %} {% block content %}
+<div class="page-content">
+    <div class="row padding-vertical-30">
+        <div class="col-sm-12 text-center">
+            <h2>Search User</h2>
+            <form role="search">
+                <div class="input-search">
+                    <input type="text" class="form-control round" placeholder="User ID:" id="userID">
+                </div>
+                <button type="button" class="btn btn-primary" id="searchButton">Search</button>
+            </form>
+        </div>
+    </div>
+    <div class="panel invisible" id="tablePanel">
+        <div class="panel-body container-fluid" id="tablePanelInner">
+        </div>
+    </div>
+</div>
+
+<div class="modal fade" id="luggageModal" aria-hidden="true" aria-labelledby="buyModal" role="dialog" tabindex="-1">
+    <div class="modal-dialog modal-center">
+        <div class="modal-content">
+            <div class="modal-header">
+                <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                    <span aria-hidden="true">×</span>
+                </button>
+                <h4 class="modal-title">Luggage Information</h4>
+            </div>
+            <form class="form-horizontal" method="POST" action="/ticket_staff/sale">
+            <div class="modal-body">
+                <p>Please, enter the weight of the luggage<p>
+                    <input type="hidden" name="action" value="addWeight">
+                    <input type="hidden" name="passengerID" id="passengerID">
+                    <input type="hidden" name="flightID" id="flightID">
+
+                    <div class="form-group">
+                      <label class="col-sm-3 control-label">Weight: </label>
+                      <div class="col-sm-9">
+                        <input type="text" class="form-control" name="weight" placeholder="Weight(in kgs)" autocomplete="off"/>
+                      </div>
+                    </div>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-default" data-dismiss="modal">Cancel</button>
+                <button type="submit" class="btn btn-primary">Add</button>
+            </div>
+        </form>
+        </div>
+    </div>
+</div>
+
+{% endblock %}
+{% block js %}
+{% endblock %}
+{% block jquery %}
+<script>
+  (function(document, window, $) {
+    'use strict';
+    $(document).on('click', '.luggageButton', function(){
+        var passengerID = $(this).find('#luggagePassengerID').val();
+        var flightID = $(this).find('#luggageFlightID').val();
+        $("#passengerID").val(passengerID);
+        $("#flightID").val(flightID);
+    });
+    $(document).on('click', '.sellButton', function(){
+        var passengerID = $(this).find('#luggagePassengerID').val();
+        var flightID = $(this).find('#luggageFlightID').val();
+        $.post('/ticket_staff/sale', {action: "buyTicket", passengerID: passengerID, flightID: flightID})
+            .done(function(data) {
+                var val = JSON.parse(data);
+                toastr[val['type']](val['str']);
+            });
+    });
+    $("#searchButton").click(function() {
+        var userID = $("#userID").val();
+        $.post("/ticket_staff/sale", {userID: userID})
+            .done(function(data){
+                $('#tablePanelInner').html(data);
+                $("#tablePanel").removeClass("invisible");
+            });
+    });
+    {% include 'message.html' %}
+  })(document, window, jQuery);
+ </script>
+{% endblock %}

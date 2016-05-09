@@ -1,7 +1,0 @@
-{% extends "passenger_base.html" %}
-{% block title %}Flights Screen{% endblock %}
-{% block head %}
-{% endblock %}
-{% block content %}
-<h1> YARRAK </h1>
-{% endblock %}

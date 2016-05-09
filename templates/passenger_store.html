@@ -8,7 +8,7 @@
             <h2>Search Airport Stores</h2>
             <form role="search">
                 <div class="input-search">
-                    <input type="text" class="form-control round" placeholder="From:" id="storeName" name="storeName" >
+                    <input type="text" class="form-control round" placeholder="Airport Name:" id="storeName" name="storeName" >
                 </div>
                 <button type="button" class="btn btn-primary" id="searchButton">Search</button>
             </form>
@@ -27,7 +27,8 @@
 <script>
   (function(document, window, $) {
     'use strict';
-    var cols = ['flight_id', 'date', 'departure', 'eta', 'from', 'to', 'duration', 'class', 'price'];
+    var airports = {{airports|safe}}
+    $("#storeName").autocomplete({source:airports});
     $("#searchButton").click(function() {
         var storeName = $("#storeName").val();
         $.post("/passenger/store", {storeName: storeName})

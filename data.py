@@ -12,6 +12,68 @@ class database:
     def close(self):
         self.db.close()
 
+    def create_pass_history_view(self, pass_id):
+        cursor = self.db.cursor()
+        cursor.execute("CREATE VIEW pass_history_view_{} AS"
+                   " SELECT * FROM pass_history WHERE pass_id = '{}'".format(pass_id, pass_id))
+
+    def drop_pass_history_view(self, pass_id):
+        cursor = self.db.cursor()
+        cursor.execute("DROP VIEW pass_history_view_{}".format(pass_id))
+
+    def create_pilot_schedule_view(self, pilot_id):
+        cursor = self.db.cursor()
+        cursor.execute("CREATE VIEW pilot_schedule_{} AS SELECT * FROM flight WHERE flight_id IN (SELECT flight_id FROM "
+                        "flight_pilot WHERE pilot_id = '{}')".format(pilot_id, pilot_id))
+
+    def drop_pilot_schedule_view(self, pilot_id):
+        cursor = self.db.cursor()
+        cursor.execute("DROP VIEW pilot_schedule_{}".format(pilot_id))
+
+    def create_att_schedule_view(self, att_id):
+        cursor = self.db.cursor()
+        cursor.execute("CREATE VIEW att_schedule_{} AS SELECT * FROM flight WHERE flight_id IN (SELECT flight_id FROM "
+                        "flight_att WHERE att_id = '{}')".format(att_id, att_id))
+
+    def drop_att_schedule_view(self, att_id):
+        cursor = self.db.cursor()
+        cursor.execute("DROP VIEW att_schedule_{}".format(att_id))
+
+    def create_plane_view(self, pilot_id, flight_id):
+        cursor = self.db.cursor()
+        cursor.execute("CREATE VIEW plane_view_{} AS SELECT * FROM plane NATURAL JOIN plane_model WHERE plane_id IN (SELECT plane_id FROM "
+                        "flight WHERE flight_id = '{}')".format(pilot_id, flight_id))
+
+    def drop_plane_view(self, pilot_id):
+        cursor = self.db.cursor()
+        cursor.execute("DROP VIEW plane_view_{}".format(pilot_id))
+
+    def create_food_promotion_view(self, att_id):
+        cursor = self.db.cursor()
+        cursor.execute("CREATE VIEW food_promotion_view_{} AS "
+                       "SELECT * FROM food_promotion WHERE "
+                       "pass_id IN (SELECT pass_id FROM ticket "
+                       "WHERE flight_id IN (SELECT flight_id "
+                       "FROM flight_att WHERE att_id = '{}'".format(att_id, att_id))
+
+    def create_flight_promotion_view(self, store_staff_id):
+        cursor = self.db.cursor()
+        cursor.execute("CREATE VIEW ")
+
+    def drop_flight_promotion_view(self, store_staff_id):
+        cursor = self.db.cursor()
+        cursor.execute("DROP VIEW flight_promotion_view_{}".format(store_staff_id))
+
+    def create_pers_history_view(self, flight_pers_id):
+        cursor = self.db.cursor()
+        cursor.execute("CREATE VIEW pers_history_view_{} AS SELECT * FROM pers_history "
+                        "WHERE flight_pers_id = '{}'".format(flight_pers_id,flight_pers_id))
+        self.db.commit()
+
+    def drop_pers_history_view(self, flight_pers_id):
+        cursor = self.db.cursor()
+        cursor.execute("DROP VIEW pers_history_view_{}".format(flight_pers_id))
+
     def check_login(self, userid, password):
         cursor = self.db.cursor()
         cursor.execute("SELECT * FROM person WHERE person_id='{}' and password='{}'".format(userid, password))
@@ -22,7 +84,7 @@ class database:
 
     def get_user_type(self, userid):
         cursor = self.db.cursor()
-        if userid == 1:
+        if userid == "1":
             return "admin"
 
         cursor.execute("SELECT * FROM passenger WHERE pass_id='{}'".format(userid))
@@ -68,46 +130,92 @@ class database:
         return data[0]
 
     def display_direct_flights(self, source, dest):
-        cursor = self.db.cursor()
-        cursor.execute("SELECT * FROM flight AS F NATURAL JOIN flight_arrival"
-        " WHERE EXISTS(SELECT city_name, country FROM airport AS A WHERE F.dep_airport_name = A.airport_name AND city_name "
-        "LIKE CONCAT('%', '{}', '%'))"
-        " AND EXISTS(SELECT city_name, country FROM airport AS A WHERE F.arr_airport_name = A.airport_name AND city_name "
-        "LIKE CONCAT('%', '{}', '%'))"
-        " ORDER BY F.flight_id".format(source, dest))
+        cursor = self.db.cursor(dictionary=True)
+        stmt = "SELECT * FROM flight AS F NATURAL JOIN flight_arrival"
+        " WHERE EXISTS(SELECT city_name, country FROM airport AS A WHERE F.dep_airport_name = A.airport_name AND A.airport_name ="
+        " '{}')"
+        " AND EXISTS(SELECT city_name, country FROM airport AS A WHERE F.arr_airport_name = A.airport_name AND A.airport_name = "
+        "'{}')"
+        " ORDER BY F.flight_id".format(source, dest)
+        cursor.execute(stmt)
         data = cursor.fetchall()
-        list = []
+        li = []
         for row in data:
-            dict = {'flight_id': row[0], 'date': row[1], 'plane_id': row[2], 'dep_airport_name': row[3],
-                    'dep_city_name': row[4], 'dep_country': row[5], 'arr_airport_name': row[6], 'arr_city_name': row[7],
-                    'arr_country': row[7], 'duration': row[8], 'econ_price': row[9], 'business_price': row[10],
-                    'landed': row[11]}
-            list.append(dict)
-        return list
+            dateobj = row['date']
+            eta = row['date'] + datetime.timedelta(seconds=int(float(row['duration']) * 60 * 60))
+            di = {
+                'flight_id': row['flight_id'],
+                'date': dateobj.date(),
+                'departure': dateobj.time(),
+                'eta': eta.time(),
+                'from': row['dep_city_name'],
+                'to': row['arr_city_name'],
+                'duration': row['duration'],
+                'class': 'Business',
+                'price': row['business_price']
+            }
+            li.append(di)
+            di['class'] = 'Economic'
+            di['price'] = row['econ_price']
+            li.append(di)
+        return li
 
-    def add_reservation(self, pass_id, flight_id, deadline, seat_no):
+    def get_airports(self):
         cursor = self.db.cursor()
-        cursor.execute("INSERT INTO reservation(pass_id, flight_id, deadline, seat_no)"
-                   " VALUES('{}', '{}', '{}', '{}')".format(pass_id, flight_id, deadline, seat_no))
+        cursor.execute('SELECT airport_name FROM airport')
+        data = cursor.fetchall()
+        li = []
+        for row in data:
+            li.append(row[0].decode('utf8'))
+        return li
+
+    def get_flight(self, flight_id):
+        cursor = self.db.cursor(dictionary=True)
+        cursor.execute("SELECT * from flight WHERE flight_id='{}'".format(flight_id))
+        data1 = cursor.fetchall()
+        li = []
+        for row in data1:
+            dateobj = row['date']
+            eta = row['date'] + datetime.timedelta(seconds=int(float(row['duration']) * 60 * 60))
+            di = {
+                'flight_id': row['flight_id'],
+                'date': dateobj.date(),
+                'departure': dateobj.time(),
+                'eta': eta.time(),
+                'from': row['dep_city_name'],
+                'to': row['arr_city_name'],
+                'duration': row['duration'],
+                'class': 'Business',
+                'price': row['business_price']
+            }
+            return di
+
+    def add_reservation(self, pass_id, flight_id):
+        cursor = self.db.cursor()
+        cursor.execute("INSERT INTO reservation(pass_id, flight_id)"
+                   " VALUES('{}', '{}')".format(pass_id, flight_id))
         self.db.commit()
 
     def add_ticket(self, pass_id, flight_id, staff_id):
         cursor = self.db.cursor()
-        cursor.execute("INSERT INTO ticket(flight_id, pass_id, staff_id)"
-                    " VALUES('{}', '{}', '{}')".format(flight_id, pass_id, staff_id))
+        flight = self.get_flight(flight_id)
+        stmt = """INSERT INTO ticket(flight_id, pass_id, staff_id, seat_no, luggage, price)
+                    VALUES('{}', '{}', '{}', '{}', '{}', '{}')""".format(flight_id, pass_id, staff_id, 1, 0, flight['price'])
+        print stmt
+        cursor.execute(stmt)
         self.db.commit()
 
     def display_passenger_history(self, pass_id):
-        cursor = self.db.cursor()
-        create_pass_history_view()
-        cursor.execute("SELECT * FROM pass_history_view")
-        drop_pass_history_view()
+        cursor = self.db.cursor(dictionary=True)
+        self.create_pass_history_view(pass_id)
+        cursor.execute("SELECT * FROM pass_history_view_{}".format(pass_id))
         data = cursor.fetchall()
-        list = []
+        self.drop_pass_history_view(pass_id)
+        li = []
         for row in data:
-            dict = {'flight_id': row[0], 'pass_id': row[1]}
-            list.append(dict)
-        return list
+            flight_id = row['flight_id']
+            li.append(self.get_flight(flight_id))
+        return li
 
     def cancel_ticket(self, pass_id, flight_id):
         cursor = self.db.cursor()
@@ -118,11 +226,11 @@ class database:
         cursor = self.db.cursor()
         cursor.execute("SELECT * FROM reservation WHERE pass_id = '{}'".format(pass_id))
         data = cursor.fetchall()
-        list = []
+        li = []
         for row in data:
-            dict = {'flight_id': row[0], 'pass_id': row[1], 'deadline': row[2], 'seat_no': row[3]}
-            list.append(dict)
-        return list
+            flight_id = row[0]
+            li.append(self.get_flight(pass_id))
+        return li
 
     def cancel_reservation(self, pass_id, flight_id, seat_no):
         cursor = self.db.cursor()
@@ -131,23 +239,23 @@ class database:
 
     def display_stores(self, airport_name):
         cursor = self.db.cursor()
-        cursor.execute("SELECT store_id, store_name, owner FROM store NATURAL JOIN airport "
-                   "WHERE airport_name LIKE CONCAT('%', '{}', '%')".format(airport_name))
+        cursor.execute("SELECT airport_name, store_name, owner FROM store NATURAL JOIN airport "
+                   "WHERE airport_name = '{}'".format(airport_name))
         data = cursor.fetchall()
         list = []
         for row in data:
-            dict = {'store_id': row[0], 'store_name': row[1], 'owner': row[2]}
+            dict = {'airport': row[0], 'store_name': row[1], 'owner': row[2]}
             list.append(dict)
         return list
 
     def display_menu_option(self, flight_id):
         cursor = self.db.cursor()
-        cursor.execute("SELECT option_id, option_name "
+        cursor.execute("SELECT option_id, option_name, price "
                    "FROM menu_option WHERE flight_id = '{}'".format(flight_id))
         data = cursor.fetchall()
         list = []
         for row in data:
-            dict = {'option_id': row[0], 'option_name': row[1]}
+            dict = {'id': row[0], 'name': row[1], 'price': row[2]}
             list.append(dict)
         return list
 
@@ -155,20 +263,42 @@ class database:
         cursor = self.db.cursor()
         cursor.execute("SELECT * FROM person WHERE person_id = '{}'".format(person_id))
         data = cursor.fetchone()
-        dict = {'person_id': data[0], 'password': data[1], 'person_name': data[2], 'address_no': data[3],
-                'street': data[4], 'town': data[5], 'city': data[6]}
-        return dict
+        cursor.execute("SELECT email FROM person_email WHERE person_id = '{}'".format(person_id))
+        emaildata = cursor.fetchone()
+        cursor.execute("SELECT phone FROM person_phone WHERE person_id = '{}'".format(person_id))
+        phonedata = cursor.fetchone()
+        cursor.execute("SELECT expenditure FROM passenger WHERE pass_id = '{}'".format(person_id))
+        expdata = cursor.fetchone()
+        di = {
+            'name': data[2],
+            'id': data[0],
+            'email': emaildata[0],
+            'address': data[5],
+            'phone': phonedata[0],
+        }
+        if expdata:
+            di['expenditure'] = expdata[0]
+        return di
 
     def update_password(self, old, new, person_id):
+        cursor = self.db.cursor(buffered=True)
+        cursor.execute("SELECT * from person WHERE person_id = '{}' and password='{}'".format(person_id, old))
+        if cursor.rowcount == 0:
+            raise Error('Old password is wrong!')
+        cursor.close()
         cursor = self.db.cursor()
-        cursor.execute("SET person UPDATE password = '{}' WHERE password = '{}' "
-                   "person_id = '{}'".format(new, old, person_id))
+        cursor.execute("UPDATE person SET password = '{}' WHERE password = '{}' "
+                   "and person_id = '{}'".format(new, old, person_id))
         self.db.commit()
 
-    def delete_phone(self, phone, person_id):
+    def update_address(self, person_id, address):
         cursor = self.db.cursor()
-        cursor.execute("DELETE FR0M person_phone WHERE person_id = '{}' AND "
-                   "phone = '{}'".format(person_id, phone))
+        cursor.execute("UPDATE person SET town = '{}' WHERE person_id = '{}'".format(address, person_id))
+        self.db.commit()
+
+    def delete_phone(self, person_id):
+        cursor = self.db.cursor()
+        cursor.execute("DELETE FROM person_phone WHERE person_id = '{}'".format(person_id))
         self.db.commit()
 
     def add_phone(self, phone, person_id):
@@ -176,10 +306,9 @@ class database:
         cursor.execute("INSERT INTO person_phone VALUES('{}', '{}')".format(person_id, phone))
         self.db.commit()
 
-    def delete_email(self, email, person_id):
+    def delete_email(self, person_id):
         cursor = self.db.cursor()
-        cursor.execute("DELETE FR0M person_email WHERE person_id = '{}' AND "
-                   "email = '{}'".format(person_id, email))
+        cursor.execute("DELETE FROM person_email WHERE person_id = '{}'".format(person_id))
         self.db.commit()
 
     def add_email(self, email, person_id):
@@ -194,59 +323,50 @@ class database:
             raise Error("User not found!")
         self.db.commit()
 
-    def browse_pilot_schudule(self, pilot_id):
+    def browse_pilot_schedule(self, pilot_id):
         cursor = self.db.cursor()
-        create_pilot_schedule_view(self, pilot_id)
-        cursor.execute("SELECT * FROM pilot_schedule")
+        self.create_pilot_schedule_view(pilot_id)
+        cursor.execute("SELECT * FROM pilot_schedule_{}".format(pilot_id))
         data = cursor.fetchall()
-        list = []
+        li = []
         for row in data:
-            dict = {'flight_id': row[0], 'date': row[1], 'plane_id': row[2], 'dep_airport_name': row[3],
-                    'dep_city_name': row[4], 'dep_country': row[5], 'arr_airport_name': row[6], 'arr_city_name': row[7],
-                    'arr_country': row[7], 'duration': row[8], 'econ_price': row[9], 'business_price': row[10],
-                    'landed': row[11]}
-            list.append(dict)
-        drop_pilot_schedule_view(self)
-        return list
+            li.append(self.get_flight(row[0]))
+        self.drop_pilot_schedule_view(pilot_id)
+        return li
 
     def browse_att_schudule(self, att_id):
         cursor = self.db.cursor()
-        create_att_schedule_view(self, att_id)
+        self.create_att_schedule_view(att_id)
         cursor.execute("SELECT * FROM att_schedule")
         data = cursor.fetchall()
-        list = []
+        li = []
         for row in data:
-            dict = {'flight_id': row[0], 'date': row[1], 'plane_id': row[2], 'dep_airport_name': row[3],
-                    'dep_city_name': row[4], 'dep_country': row[5], 'arr_airport_name': row[6], 'arr_city_name': row[7],
-                    'arr_country': row[7], 'duration': row[8], 'econ_price': row[9], 'business_price': row[10],
-                    'landed': row[11]}
-            list.append(dict)
-        drop_att_schedule_view(self)
-        return list
+            li.append(self.get_flight(row[0]))
+        self.drop_att_schedule_view(self)
+        return li
 
-    def display_plane_info(self, pilot_id):
+    def display_plane_info(self, pilot_id, flight_id):
         cursor = self.db.cursor()
-        create_plane_view(self, pilot_id)
-        cursor.execute("SELECT * FROM plane_view")
+        self.create_plane_view(pilot_id, flight_id)
+        cursor.execute("SELECT * FROM plane_view_{}".format(pilot_id))
         data = cursor.fetchall()
-        list = []
+        li = []
         for row in data:
-            dict = {'plane_id': row[0], 'model': row[1], 'capacity': row[2], 'plane_range': row[3], 'altitude': row[4]}
-            list.append(dict)
-        drop_plane_view(self)
-        return list
+            di = {'flight_id': flight_id, 'plane_id': row[0], 'model': row[1], 'range': row[3], 'altitude': row[4]}
+            li.append(di)
+        self.drop_plane_view(pilot_id)
+        return li[0]
 
     def display_flight_pers_history(self, flight_pers_id):
         cursor = self.db.cursor()
-        create_pers_history_view(self, flight_pers_id)
-        cursor.execute("SELECT * FROM pers_history_view")
+        self.create_pers_history_view(flight_pers_id)
+        cursor.execute("SELECT * FROM pers_history_view_{}".format(flight_pers_id))
         data = cursor.fetchall()
-        list = []
+        li = []
         for row in data:
-            dict = {'flight_pers_id': row[0], 'flight': row[1]}
-            list.append(dict)
-        drop_pers_history_view()
-        return list
+            li.append(self.get_flight(row[0]))
+        self.drop_pers_history_view(flight_pers_id)
+        return li
 
     def display_food_promotion(self, pass_id):
         cursor = self.db.cursor()
@@ -321,22 +441,23 @@ class database:
             raise Error('Flight not found!')
         self.db.commit()
 
-    def add_plane(self, plane_id, model, capacity, plane_range, altitude):
+    def add_plane(self, model, capacity, plane_range, altitude):
         cursor = self.db.cursor()
-        cursor.execute("INSERT INTO plane VALUES('{}', '{}')".format(plane_id, model))
+        cursor.execute("""INSERT INTO plane_model VALUES('{}', '{}', '{}',
+                       '{}')""".format(model, capacity, plane_range, altitude))
         self.db.commit()
-        cursor.execute("INSERT INTO plane_model VALUES('{}', '{}', '{}',"
-                       "'{}') WHERE NOT EXISTS(SELECT * FROM plane_model WHERE model = "
-                       "'{}')".format(model, capacity, plane_range, altitude, model))
+        cursor.execute("INSERT INTO plane VALUES(default, '{}')".format(model))
         self.db.commit()
 
     def remove_plane(self, plane_id):
         cursor = self.db.cursor()
-        cursor.execute("WITH a_model(model) AS (SELECT model FROM plane WHERE plane_id = '{}') "
-                       "DELETE FROM plane_model WHERE (SELECT CNT(*) FROM plane WHERE model = a_model.model) = 1 AND "
-                       "model = a_model.model".format(plane_id))
-        self.db.commit()
+        #cursor.execute("WITH a_model(model) AS (SELECT model FROM plane WHERE plane_id = '{}') "
+        #               "DELETE FROM plane_model WHERE (SELECT CNT(*) FROM plane WHERE model = a_model.model) = 1 AND "
+        #               "model = a_model.model".format(plane_id))
+        #self.db.commit()
         cursor.execute("DELETE FROM plane WHERE plane_id = '{}'".format(plane_id))
+        if cursor.rowcount == 0:
+            raise Error('Plane is not found!')
         self.db.commit()
 
     def delay_flight(self, delay, flight_id):
@@ -432,66 +553,6 @@ class database:
         cursor.execute("UPDATE flight SET landed = 1 WHERE flight_id = '{}'".format(flight_id))
         self.db.commit()
 
-    def create_pass_history_view(self, pass_id):
-        cursor = self.db.cursor()
-        cursor.execute("CREATE VIEW pass_history_view AS"
-                   " SELECT * FROM pass_history WHERE pass_id = '{}'".format(pass_id))
-
-    def drop_pass_history_view(self):
-        cursor = self.db.cursor()
-        cursor.execute("DROP VIEW pass_history_view")
-
-    def create_pilot_schedule_view(self, pilot_id):
-        cursor = self.db.cursor()
-        cursor.execute("CREATE VIEW pilot_schedule AS SELECT * FROM flight WHERE flight_id IN (SELECT flight_id FROM "
-                        "flight_pilot WHERE pilot_id = '{}')".format(pilot_id))
-
-    def drop_pilot_schedule_view(self):
-        cursor = self.db.cursor()
-        cursor.execute("DROP VIEW pilot_schedule")
-
-    def create_att_schedule_view(self, att_id):
-        cursor = self.db.cursor()
-        cursor.execute("CREATE VIEW att_schedule AS SELECT * FROM flight WHERE flight_id IN (SELECT flight_id FROM "
-                        "flight_att WHERE att_id = '{}')".format(att_id))
-
-    def drop_att_schedule_view(self):
-        cursor = self.db.cursor()
-        cursor.execute("DROP VIEW att_schedule")
-
-    def create_plane_view(self, pilot_id):
-        cursor = self.db.cursor()
-        cursor.execute("CREATE VIEW plane_view AS SELECT * FROM plane NATURAL JOIN plane_model WHERE plane_id IN (SELECT plane_id FROM "
-                        "flight WHERE flight_id IN (SELECT flight_id FROM flight_pilot WHERE pilot_id = '{}'))".format(pilot_id))
-
-    def drop_plane_view(self):
-        cursor = self.db.cursor()
-        cursor.execute("DROP VIEW plane_view")
-
-    def create_food_promotion_view(self, att_id):
-        cursor = self.db.cursor()
-        cursor.execute("CREATE VIEW food_promotion_view AS "
-                       "SELECT * FROM food_promotion WHERE "
-                       "pass_id IN (SELECT pass_id FROM ticket "
-                       "WHERE flight_id IN (SELECT flight_id "
-                       "FROM flight_att WHERE att_id = '{}'".format(att_id))
-
-    def create_flight_promotion_view(self, store_staff_id):
-        cursor = self.db.cursor()
-        cursor.execute("CREATE VIEW ")
-
-    def drop_flight_promotion_view(self):
-        cursor = self.db.cursor()
-        cursor.execute("DROP VIEW flight_promotion_view")
-
-    def create_pers_history_view(self, flight_pers_id):
-        cursor = self.db.cursor()
-        cursor.execute("CREATE VIEW pers_history_view AS SELECT * FROM pers_history "
-                        "WHERE flight_pers_id = '{}'".format(flight_pers_id))
-
-    def drop_pers_history_view(self):
-        cursor = self.db.cursor()
-        cursor.execute("DROP VIEW pers_history_view")
 
     def sale_report(self):
         cursor = self.db.cursor()

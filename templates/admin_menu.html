@@ -1,0 +1,98 @@
+{% extends "layout.html" %} {% block title %}Add/Remove Food{% endblock %} {% block css %}
+<link rel="stylesheet" href="/static/assets/examples/css/forms/layouts.css">
+<link rel="stylesheet" href="/static/assets/examples/css/uikit/modals.css">
+  <link rel="stylesheet" href="/static/global/vendor/alertify-js/alertify.css">
+  <link rel="stylesheet" href="/static/assets/examples/css/advanced/alertify.css">
+  <link rel="stylesheet" href="/static/assets/examples/css/forms/advanced.css">
+  <link rel="stylesheet" href="/static/global/vendor/jt-timepicker/jquery-timepicker.css">
+  <link rel="stylesheet" href="/static/global/vendor/bootstrap-datepicker/bootstrap-datepicker.css">
+<link rel="stylesheet" href="/static/assets/examples/css/uikit/icon.css"> {% endblock %} {% block content %}
+<div class="page">
+<div class="page-header">
+    <h1 class="page-title"> Add/Remove Food</h1>
+</div>
+<div class="page-content">
+        <div class="container-fluid">
+            <div class="row">
+                <div class="col-md-6">
+                    <div class="panel">
+                        <div class="panel-heading">
+                            <h3 class="panel-title"> Add Food </h3>
+                        </div>
+                        <div class="panel-body">
+                  <form class="form-horizontal" method="POST" action="/admin/menu">
+                      <input type="hidden" name="action" value="add_food">
+                    <div class="form-group">
+                      <label class="col-sm-3 control-label">Flight ID: </label>
+                      <div class="col-sm-9">
+                        <input type="text" class="form-control" name="flight_id" autocomplete="off"
+                        />
+                      </div>
+                    </div>
+                    <div class="form-group">
+                      <label class="col-sm-3 control-label">Price: </label>
+                      <div class="col-sm-9">
+                        <input type="text" class="form-control" name="price" autocomplete="off"
+                        />
+                      </div>
+                    </div>
+                    <div class="form-group">
+                      <label class="col-sm-3 control-label">Name: </label>
+                      <div class="col-sm-9">
+                        <input type="text" class="form-control" name="name" autocomplete="off"
+                        />
+                      </div>
+                    </div>
+                    <div class="form-group">
+                      <div class="col-sm-9 col-sm-offset-3">
+                        <button type="submit" class="btn btn-primary">Add</button>
+                      </div>
+                    </div>
+                  </form>
+              </div>
+              </div>
+              </div>
+
+            <div class="col-md-6">
+                    <div class="panel">
+
+                        <div class="panel-heading">
+                            <h3 class="panel-title"> Remove Promotion</h3>
+                        </div>
+                        <div class="panel-body">
+                  <form class="form-horizontal" method="POST" action="/admin/menu">
+                      <input type="hidden" name="action" value="remove_food">
+                      <div class="form-group">
+                        <label class="col-sm-3 control-label">Promotion ID: </label>
+                        <div class="col-sm-9">
+                          <input type="text" class="form-control" name="promotion_id" autocomplete="off"
+                          />
+                        </div>
+                      </div>
+
+                    <div class="form-group">
+                      <div class="col-sm-9 col-sm-offset-3">
+                        <button type="submit" class="btn btn-danger">Remove</button>
+                      </div>
+                    </div>
+                  </form>
+              </div>
+              </div>
+              </div>
+          </div>
+</div>
+</div>
+</div>
+{% endblock %}
+{% block js %}
+<script src="/static/global/vendor/alertify-js/alertify.js"></script>
+<script src="/static/global/js/components/bootstrap-datepicker.js"></script>
+<script src="/static/global/vendor/bootstrap-datepicker/bootstrap-datepicker.js"></script>
+<script src="/static/assets/examples/js/forms/advanced.js"></script>
+<script src="/static/global/js/components/alertify-js.js"></script>
+<script src="/static/global/vendor/datepair-js/jquery.datepair.min.js"></script>
+<script src="/static/global/vendor/jquery-strength/jquery-strength.min.js"></script>
+<script src="/static/global/js/components/datepair-js.js"></script>
+<script src="/static/global/vendor/jt-timepicker/jquery.timepicker.min.js"></script>
+<script src="/static/global/js/components/jt-timepicker.js"></script>
+{% endblock %}

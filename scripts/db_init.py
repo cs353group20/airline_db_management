@@ -186,7 +186,7 @@ tables.append(
 
 tables.append(
 		 "CREATE TABLE plane_model( "
-                 "model varchar(20) PRIMARY KEY, "
+                 "model varchar(20) PRIMARY KEY UNIQUE, "
 		 "capacity int, "
                  "plane_range numeric(7,2), "
                  "altitude numeric(5,2)) ENGINE=InnoDB ")
@@ -312,8 +312,8 @@ tables.append(
 		 "luggage int NOT NULL, "
                  "price numeric(6,2), "
 		 "PRIMARY KEY(ticket_id), "
-		 "FOREIGN KEY(flight_id, pass_id, seat_no) references reservation(flight_id, pass_id, seat_no)  "
-                 "on delete cascade, "
+#		 "FOREIGN KEY(flight_id, pass_id, seat_no) references reservation(flight_id, pass_id, seat_no)  "
+#                 "on delete cascade, "
 		 "FOREIGN KEY(staff_id) references ticket_staff(ticket_staff_id)  "
                  "on delete cascade) ENGINE=InnoDB ")
 

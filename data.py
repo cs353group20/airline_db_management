@@ -2,6 +2,7 @@ import mysql.connector
 from mysql.connector.errors import Error
 import datetime
 import time
+import copy
 
 class database:
     def __init__(self, db):
@@ -131,15 +132,13 @@ class database:
 
     def display_direct_flights(self, source, dest):
         cursor = self.db.cursor(dictionary=True)
-        stmt = "SELECT * FROM flight AS F NATURAL JOIN flight_arrival"
-        " WHERE EXISTS(SELECT city_name, country FROM airport AS A WHERE F.dep_airport_name = A.airport_name AND A.airport_name ="
-        " '{}')"
-        " AND EXISTS(SELECT city_name, country FROM airport AS A WHERE F.arr_airport_name = A.airport_name AND A.airport_name = "
-        "'{}')"
-        " ORDER BY F.flight_id".format(source, dest)
+        stmt = """SELECT * FROM flight as F
+            WHERE F.dep_airport_name = '{}' and F.arr_airport_name = '{}'
+            ORDER BY F.flight_id""".format(dest, source)
         cursor.execute(stmt)
         data = cursor.fetchall()
         li = []
+        way = {}
         for row in data:
             dateobj = row['date']
             eta = row['date'] + datetime.timedelta(seconds=int(float(row['duration']) * 60 * 60))
@@ -154,10 +153,71 @@ class database:
                 'class': 'Business',
                 'price': row['business_price']
             }
+
             li.append(di)
-            di['class'] = 'Economic'
-            di['price'] = row['econ_price']
-            li.append(di)
+            didi = copy.deepcopy(di)
+            didi['class'] = 'Economic'
+            didi['price'] = row['econ_price']
+            li.append(didi)
+
+        cursor.execute("""SELECT * FROM flight""")
+        data = cursor.fetchall()
+        for row in data:
+            dateobj = row['date']
+            eta = row['date'] + datetime.timedelta(seconds=int(float(row['duration']) * 60 * 60))
+            di = {
+                'flight_id': row['flight_id'],
+                'date': dateobj.date(),
+                'departure': dateobj.time(),
+                'eta': eta.time(),
+                'from': row['dep_city_name'],
+                'to': row['arr_city_name'],
+                'duration': row['duration'],
+                'class': 'Business',
+                'price': row['business_price']
+            }
+            dep_airport = row['dep_airport_name']
+            arr_airport = row['arr_airport_name']
+            if dep_airport not in way:
+                way[dep_airport] = [[arr_airport, di['flight_id']]]
+            else:
+                way[dep_airport].append([arr_airport, di['flight_id']])
+
+        used = {}
+        for key in way.keys():
+            used[key] = False
+        queue = [dest]
+        backtrack = {}
+        while len(queue) > 0:
+            top = queue[0]
+            queue.pop(0)
+            if top in way:
+                for node in way[top]:
+                    if node[0] in used and not used[node[0]] and node[0] != source:
+                        used[node[0]] = True
+                        backtrack[node[0]] = [top, node[1]]
+                        queue.append(node[0])
+                    if node[0] == source:
+                        backtrack[node[0]] = [top, node[1]]
+                        flight_list = []
+                        temp = node[0]
+                        print("TRACK FOUND")
+                        while temp != dest:
+                            print("FLIGHT #{} AIRPORT: {}", backtrack[temp][1], backtrack[temp][0])
+                            flight_list.append(backtrack[temp][1])
+                            temp = backtrack[temp][0]
+                        di = {}
+                        for i in range(len(flight_list) - 1, -1, -1):
+                            flight = self.get_flight(flight_list[i])
+                            print flight
+                            for key in flight.keys():
+                                if key not in di:
+                                    di[key] = flight[key]
+                                else:
+                                    di[key] = str(di[key]) + " <br> " + str(flight[key])
+                        li.append(di)
+
+
         return li
 
     def get_airports(self):
@@ -196,13 +256,16 @@ class database:
                    " VALUES('{}', '{}')".format(pass_id, flight_id))
         self.db.commit()
 
-    def add_ticket(self, pass_id, flight_id, staff_id):
+    def add_ticket(self, pass_id, flight_id, staff_id, seat_no):
         cursor = self.db.cursor()
         flight = self.get_flight(flight_id)
         stmt = """INSERT INTO ticket(flight_id, pass_id, staff_id, seat_no, luggage, price)
-                    VALUES('{}', '{}', '{}', '{}', '{}', '{}')""".format(flight_id, pass_id, staff_id, 1, 0, flight['price'])
+                    VALUES('{}', '{}', '{}', '{}', '{}', '{}')""".format(flight_id, pass_id, staff_id, seat_no, 0, flight['price'])
         print stmt
         cursor.execute(stmt)
+        cursor.execute("""
+            INSERT INTO pass_history(flight_id, pass_id) VALUES('{}', '{}')
+        """.format(flight_id, pass_id))
         self.db.commit()
 
     def display_passenger_history(self, pass_id):
@@ -334,15 +397,15 @@ class database:
         self.drop_pilot_schedule_view(pilot_id)
         return li
 
-    def browse_att_schudule(self, att_id):
+    def browse_att_schedule(self, att_id):
         cursor = self.db.cursor()
         self.create_att_schedule_view(att_id)
-        cursor.execute("SELECT * FROM att_schedule")
+        cursor.execute("SELECT * FROM att_schedule_{}".format(att_id))
         data = cursor.fetchall()
         li = []
         for row in data:
             li.append(self.get_flight(row[0]))
-        self.drop_att_schedule_view(self)
+        self.drop_att_schedule_view(att_id)
         return li
 
     def display_plane_info(self, pilot_id, flight_id):
@@ -417,21 +480,12 @@ class database:
     def add_flight(self, date, plane_id, duration, econ_price, business_price, dep_airport_name,
                     dep_city_name, dep_country, arr_airport_name, arr_city_name, arr_country):
         cursor = self.db.cursor()
-        print """INSERT INTO flight VALUES(default, '{}', '{}',
-                       '{}', '{}', '{}', '{}', '{}', '{}', '{}', '{}', '{}',
-                       0)""".format(date, plane_id, dep_airport_name, dep_city_name,
-                       dep_country, arr_airport_name, arr_city_name, arr_country, duration, econ_price,
-                       business_price)
-        cursor.execute("""INSERT INTO flight VALUES(default, '{}', '{}',
-                       '{}','{}', '{}', '{}', '{}', '{}', '{}', '{}', '{}',
-                       0)""".format(date, plane_id, dep_airport_name, dep_city_name,
-                       dep_country, arr_airport_name, arr_city_name, arr_country, duration, econ_price,
-                       business_price))
-        self.db.commit()
-        arrival = date + datetime.timedelta(seconds=delay*60)
-        cursor.execute("INSERT INTO flight_arrival VALUES('{}', '{}', '{}')"
-                       " WHERE NOT EXISTS(SELECT * FROM flight_arrival WHERE "
-                       "date = '{}' AND duration = '{}')".format(date, duration, arrival, date, duration))
+        arrival = date + datetime.timedelta(seconds=int(float(duration)*60*60))
+        stmt = """INSERT INTO flight (date, plane_id, duration, econ_price, business_price, dep_airport_name, dep_city_name, dep_country, arr_airport_name, arr_city_name, arr_country, arrival, landed) VALUES('{}', '{}',
+                       {}, '{}', '{}', '{}', '{}', '{}', '{}', '{}', '{}', '{}',
+                       0)""".format(date, plane_id, duration, econ_price, business_price, dep_airport_name, dep_city_name, dep_country, arr_airport_name, arr_city_name, arr_country, arrival, 0)
+        print stmt
+        cursor.execute(stmt)
         self.db.commit()
 
     def remove_flight(self, flight_id):
@@ -461,13 +515,14 @@ class database:
         self.db.commit()
 
     def delay_flight(self, delay, flight_id):
-        cursor = self.db.cursor()
-        cursor.execute("SELECT date FROM flight WHERE flight_id = '{}'".format(flight_id))
+        cursor = self.db.cursor(dictionary=True)
+        cursor.execute("SELECT * FROM flight WHERE flight_id = '{}'".format(flight_id))
         date = cursor.fetchone()
         if date is None:
             raise Error('Flight not found!')
-        new_date = date[0] + datetime.timedelta(seconds=delay*60)
-        cursor.execute("UPDATE flight SET date = '{}' WHERE flight_id = '{}'".format(new_date, flight_id))
+        new_date = date['date'] + datetime.timedelta(seconds=delay*60)
+        new_arrival = date['arrival'] + datetime.timedelta(seconds=delay*60)
+        cursor.execute("UPDATE flight SET date = '{}', arrival = '{}' WHERE flight_id = '{}'".format(new_date, new_arrival, flight_id))
         self.db.commit()
 
     def assign_attendant_to_flight(self, att_id, flight_id):
@@ -480,10 +535,10 @@ class database:
         cursor.execute("INSERT INTO flight_pilot VALUES('{}', '{}')".format(flight_id, pilot_id))
         self.db.commit()
 
-    def add_menu_option(self, flight_id, option_id, option_name, price):
+    def add_menu_option(self, flight_id, option_name, price):
         cursor = self.db.cursor()
-        cursor.execute("INSERT INTO menu_option VALUES('{}', '{}', '{}', "
-                       "'{}')".format(flight_id, option_id, option_name, price))
+        cursor.execute("INSERT INTO menu_option VALUES('{}', default, '{}', "
+                       "'{}')".format(flight_id, option_name, price))
         self.db.commit()
 
     def remove_menu_option(self, flight_id, option_id):
@@ -509,37 +564,48 @@ class database:
         cursor.execute("INSERT INTO passenger VALUES('{}', 0, 0)".format(person_id))
         self.db.commit()
 
-    def assign_person_as_attendant(self, person_id, salary, start_date, duty):
-        delete_account(self, person_id)
+    def delete_role(self, person_id):
         cursor = self.db.cursor()
-        cursor.execute("INSERT INTO flight_attendant VALUES('{}', 0, 0)".format(person_id, salary, start_date, duty))
+        cursor.execute("DELETE FROM passenger WHERE pass_id = '{}'".format(person_id))
+        cursor.execute("DELETE FROM staff WHERE staff_id = '{}'".format(person_id))
+        cursor.execute("DELETE FROM flight_attendant WHERE att_id = '{}'".format(person_id))
+        cursor.execute("DELETE FROM pilot WHERE pilot_id = '{}'".format(person_id))
+        cursor.execute("DELETE FROM ticket_staff WHERE ticket_staff_id = '{}'".format(person_id))
+        cursor.execute("DELETE FROM store_staff WHERE store_staff_id = '{}'".format(person_id))
         self.db.commit()
 
-    def assign_person_as_pilot(self, person_id, salary, start_date, rank, certificate_type):
-        delete_account(self, person_id)
+    def assign_person_as_attendant(self, person_id):
+        self.delete_role(person_id)
         cursor = self.db.cursor()
-        cursor.execute("INSERT INTO pilot VALUES('{}', '{}', '{}', '{}', '{}')".format(person_id,
-                        salary, start_date, rank, certificate_type))
+        cursor.execute("INSERT INTO staff (staff_id) VALUES('{}')".format(person_id))
+        cursor.execute("INSERT INTO flight_attendant (att_id) VALUES('{}')".format(person_id))
         self.db.commit()
 
-    def assign_person_as_ticket_staff(self, person_id, salary, start_date):
-        delete_account(self, person_id)
+    def assign_person_as_pilot(self, person_id):
+        self.delete_role(person_id)
         cursor = self.db.cursor()
-        cursor.execute("INSERT INTO ticket_staff VALUES('{}', '{}', '{}', 0)".format(person_id,
-                        salary, start_date))
+        cursor.execute("INSERT INTO staff (staff_id) VALUES('{}')".format(person_id))
+        cursor.execute("INSERT INTO pilot (pilot_id) VALUES('{}')".format(person_id))
         self.db.commit()
 
-    def assign_person_as_store_staff(self, person_id, salary, start_date):
-        delete_account(self, person_id)
+    def assign_person_as_ticket_staff(self, person_id):
+        self.delete_role(person_id)
         cursor = self.db.cursor()
-        cursor.execute("INSERT INTO store_staff VALUES('{}', '{}', '{}', 0)".format(person_id,
-                        salary, start_date))
+        cursor.execute("INSERT INTO staff (staff_id) VALUES('{}')".format(person_id))
+        cursor.execute("INSERT INTO ticket_staff (ticket_staff_id) VALUES('{}')".format(person_id))
+        self.db.commit()
+
+    def assign_person_as_store_staff(self, person_id):
+        self.delete_role(person_id)
+        cursor = self.db.cursor()
+        cursor.execute("INSERT INTO staff (staff_id) VALUES('{}')".format(person_id))
+        cursor.execute("INSERT INTO store_staff (stora_staff_id) VALUES('{}')".format(person_id))
         self.db.commit()
 
     def display_all_flights(self):
         cursor = self.db.cursor()
         cursor.execute("""SELECT flight_id, date, arrival, duration, arr_city_name, arr_country
-                       FROM flight NATURAL JOIN flight_arrival WHERE landed = 0 ORDER BY flight_id""")
+                       FROM flight WHERE landed = 0 ORDER BY flight_id""")
         data = cursor.fetchall()
         list = []
         for row in data:

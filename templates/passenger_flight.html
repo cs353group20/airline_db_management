@@ -70,6 +70,19 @@
                         <input type="text" class="form-control" name="ccv" placeholder="CCV" autocomplete="off"/>
                       </div>
                     </div>
+
+                    <div class="form-group">
+                          <label class="col-sm-3 control-label">Seat ID: </label>
+                          <div class="col-sm-9">
+                              <select class="form-control" data-plugin="select2" name="seat_no">
+                        <optgroup label="Choose a Seat">
+                            {% for n in range(1, 100) %}
+                                <option value="{{n}}">{{n}} </option>
+                            {% endfor %}
+                        </optgroup>
+                    </select>
+                          </div>
+                    </div>
             </div>
             <div class="modal-footer">
                 <button type="button" class="btn btn-default" data-dismiss="modal">Cancel</button>

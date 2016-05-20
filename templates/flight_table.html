@@ -16,15 +16,15 @@
         <tbody id = "tableBody">
             {% for entry in data %}
             <tr>
-                <td>{{entry.flight_id}}</td>
-                <td>{{entry.date}}</td>
-                <td>{{entry.departure}}</td>
-                <td>{{entry.eta}}</td>
-                <td>{{entry.from}}</td>
-                <td>{{entry.to}}</td>
-                <td>{{entry.duration}}</td>
-                <td>{{entry.class}}</td>
-                <td>{{entry.price}}</td>
+                <td>{{entry.flight_id | safe}}</td>
+                <td>{{entry.date | safe}}</td>
+                <td>{{entry.departure | safe}}</td>
+                <td>{{entry.eta | safe}}</td>
+                <td>{{entry.from | safe}}</td>
+                <td>{{entry.to | safe}}</td>
+                <td>{{entry.duration | safe}}</td>
+                <td>{{entry.class | safe}}</td>
+                <td>{{entry.price | safe}}</td>
                 <td class="text-nowrap">
                     <span data-toggle="modal" data-target="#buyModal">
                         <button type="button" class="buyButton btn btn-sm btn-icon btn-flat btn-default" data-toggle="tooltip" data-original-title="Buy">

@@ -136,7 +136,7 @@ def buy_ticket():
     status = 'success'
     message = 'Ticket succesfully bought!'
     try:
-        db.add_ticket(session['id'], request.form['flightID'], 22)
+        db.add_ticket(session['id'], request.form['flightID'], 22, request.form['seat_no'])
     except mysql.connector.Error as err:
         status = 'warning'
         message = 'Error: {}'.format(err)
@@ -331,7 +331,7 @@ def attendant_current():
     if session['user_type'] == 'pilot':
         retData = db.browse_pilot_schedule(session['id'])
     else:
-        retData = db.browse_attendant_schedule(session['id'])
+        retData = db.browse_att_schedule(session['id'])
     return render_template('attendant_current.html', data=retData)
 
 @app.route('/attendant/flight_history')
@@ -506,9 +506,10 @@ def admin_menu():
     if request.method == 'POST':
         db = get_db()
         status = 'success'
-        message = 'Menu option successfully added! {}'.format(request.form)
+        message = 'Menu option successfully added!'
         try:
-            pass
+            if (request.form['action'] == 'add_food'):
+                db.add_menu_option(request.form['flight_id'], request.form['name'], request.form['price'])
         except mysql.connector.Error as err:
             status = 'warning'
             message = "Something went wrong: {}".format(err)
@@ -557,6 +558,14 @@ def admin_account():
             if request.form['action'] == 'assign_account':
                 user_type = request.form['user_type']
                 #TUM ASSIGNLAR BURAYA GELCEK
+                if user_type == 'attendant':
+                    db.assign_person_as_attendant(user_id)
+                if user_type == 'pilot':
+                    db.assign_person_as_pilot(user_id)
+                if user_type == 'ticket_staff':
+                    db.assign_person_as_ticket_staff(user_id)
+                if user_type == 'store_staff':
+                    db.assign_person_as_store_staff(user_id)
                 message = 'User #{} succesfully assigned to {}!'.format(user_id, user_type)
             else:
                 db.delete_account(user_id)

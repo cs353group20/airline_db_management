@@ -198,17 +198,13 @@ tables.append(
                  "FOREIGN KEY(model) references plane_model(model) "
                  "on delete cascade)"
                  "ENGINE=InnoDB ")
-tables.append(
-		 "CREATE TABLE flight_arrival ( "
-		 "date DATETIME, "
-		 "duration numeric(5,2), "
-		 "arrival DATETIME, "
-		 "PRIMARY KEY(date, duration, arrival)) ENGINE=InnoDB ")
 
 tables.append(
 		 "CREATE TABLE flight ( "
 		 "flight_id int PRIMARY KEY AUTO_INCREMENT, "
 		 "date DATETIME NOT NULL, "
+                 "duration numeric(5,2),"
+                 "arrival DATETIME,"
 		 "plane_id int, "
 		 "dep_airport_name varchar(40), "
 		 "dep_city_name varchar(40), "
@@ -216,7 +212,6 @@ tables.append(
 		 "arr_airport_name varchar(40), "
 		 "arr_city_name varchar(40), "
 		 "arr_country varchar(40), "
-		 "duration numeric(5,2), "
                  "econ_price numeric(6,2), "
 		 "business_price numeric(6,2), "
 		 "landed binary NOT NULL, "
@@ -227,8 +222,6 @@ tables.append(
                  "on delete cascade, "
 		 "FOREIGN KEY(arr_airport_name, arr_city_name, arr_country) references  "
 		 "airport(airport_name, city_name, country)  "
-                 "on delete cascade, "
-                 "FOREIGN KEY(date, duration) references flight_arrival(date, duration) "
                  "on delete cascade) ENGINE=InnoDB ")
 
 tables.append(
@@ -239,14 +232,13 @@ tables.append(
 		 "PRIMARY KEY (flight_id, no), "
 		 "FOREIGN KEY (flight_id) references flight(flight_id)  "
                  "on delete cascade) ENGINE=InnoDB ")
-
 tables.append(
 		 "CREATE TABLE menu_option( "
 		 "flight_id int, "
-		 "option_id int, "
+                 "option_id int AUTO_INCREMENT, "
 		 "option_name varchar(40) NOT NULL, "
                  "price numeric(3,1), "
-		 "PRIMARY KEY (flight_id, option_id), "
+		 "PRIMARY KEY (option_id), "
 		 "FOREIGN KEY (flight_id) references flight(flight_id)  "
                  "on delete cascade) ENGINE=InnoDB ")
 
@@ -1178,87 +1170,45 @@ data.append(
 )
 
 data.append(
-         "insert into flight_arrival "
-         "(date, duration, arrival)  "
-         "values('2016-02-01 13:00:00', 0.4, '2016-02-01 13:30:00') ")
-data.append(
-         "insert into flight_arrival "
-         "(date, duration, arrival)  "
-         "values('2016-05-01 13:00:00', 14, '2016-05-02 03:00:00') ")
-data.append(
-         "insert into flight_arrival "
-         "(date, duration, arrival)  "
-         "values('2016-08-05 14:00:00', 9, '2016-08-05 23:00:00') ")
-data.append(
-         "insert into flight_arrival "
-         "(date, duration, arrival)  "
-         "values('2016-08-05 06:00:00', 10, '2016-08-05 16:00:00') ")
-data.append(
-         "insert into flight_arrival "
-         "(date, duration, arrival)  "
-         "values('2016-08-05 14:00:00', 5, '2016-08-05 19:00:00') ")
-data.append(
-         "insert into flight_arrival "
-         "(date, duration, arrival)  "
-         "values('2016-08-01 13:00:00', 9, '2016-08-01 22:00:00') ")
-data.append(
-         "insert into flight_arrival "
-         "(date, duration, arrival)  "
-         "values('2016-08-01 13:00:00', 5, '2016-08-01 18:00:00') ")
-data.append(
-         "insert into flight_arrival "
-         "(date, duration, arrival)  "
-         "values('2016-09-01 13:00:00', 8, '2016-09-01 21:00:00') ")
-data.append(
-         "insert into flight_arrival "
-         "(date, duration, arrival)  "
-         "values('2016-10-01 13:00:00', 2.5, '2016-10-01 15:30:00') ")
-data.append(
-         "insert into flight_arrival "
-         "(date, duration, arrival)  "
-         "values('2016-03-01 13:00:00', 16, '2016-03-01 05:00:00') "
-)
-
+         "insert into flight "
+         "(date, arrival, plane_id, dep_airport_name, dep_city_name, dep_country, arr_airport_name, arr_city_name, arr_country, duration, econ_price, business_price, landed)  "
+         "values('2016-02-01 13:00:00', '2016-02-01 13:00:00',1,'Istanbul Ataturk Airport', 'Istanbul', 'Turkey', 'Ankara Esenboga Airport', 'Ankara', 'Turkey', 0.4, 200, 500, true) ")
 data.append(
          "insert into flight "
-         "(date, plane_id, dep_airport_name, dep_city_name, dep_country, arr_airport_name, arr_city_name, arr_country, duration, econ_price, business_price, landed)  "
-         "values('2016-02-01 13:00:00', 1, 'Istanbul Ataturk Airport', 'Istanbul', 'Turkey', 'Ankara Esenboga Airport', 'Ankara', 'Turkey', 0.4, 200, 500, true) ")
+         "(date, arrival, plane_id, dep_airport_name, dep_city_name, dep_country, arr_airport_name, arr_city_name, arr_country, duration, econ_price, business_price, landed)  "
+         "values('2016-05-01 13:00:00', '2016-05-01 13:00:00',1, 'Istanbul Ataturk Airport', 'Istanbul', 'Turkey', 'John F. Kennedy International Airport', 'New York', 'United States', 14, 800, 2000, false) ")
 data.append(
          "insert into flight "
-         "(date, plane_id, dep_airport_name, dep_city_name, dep_country, arr_airport_name, arr_city_name, arr_country, duration, econ_price, business_price, landed)  "
-         "values('2016-05-01 13:00:00', 2, 'Istanbul Ataturk Airport', 'Istanbul', 'Turkey', 'John F. Kennedy International Airport', 'New York', 'United States', 14, 800, 2000, false) ")
+         "(date, arrival, plane_id, dep_airport_name, dep_city_name, dep_country, arr_airport_name, arr_city_name, arr_country, duration, econ_price, business_price, landed)  "
+         "values('2016-08-05 14:00:00', '2016-08-05 14:00:00',2, 'Sabiha Gokcen International Airport', 'Istanbul', 'Turkey', 'Cape Town International Airport', 'Cape Town', 'South Africa', 9, 1600, 4000, false) ")
 data.append(
          "insert into flight "
-         "(date, plane_id, dep_airport_name, dep_city_name, dep_country, arr_airport_name, arr_city_name, arr_country, duration, econ_price, business_price, landed)  "
-         "values('2016-08-05 14:00:00', 3, 'Sabiha Gokcen International Airport', 'Istanbul', 'Turkey', 'Cape Town International Airport', 'Cape Town', 'South Africa', 9, 1600, 4000, false) ")
+         "(date, arrival, plane_id, dep_airport_name, dep_city_name, dep_country, arr_airport_name, arr_city_name, arr_country, duration, econ_price, business_price, landed)  "
+         "values('2016-08-05 06:00:00', '2016-08-05 14:00:00',3,  'Narita International Airport', 'Tokyo', 'Japan', 'Ankara Esenboga Airport', 'Ankara', 'Turkey', 4, 2400, 6000, false) ")
 data.append(
          "insert into flight "
-         "(date, plane_id, dep_airport_name, dep_city_name, dep_country, arr_airport_name, arr_city_name, arr_country, duration, econ_price, business_price, landed)  "
-         "values('2016-08-05 06:00:00', 4, 'Narita International Airport', 'Tokyo', 'Japan', 'Ankara Esenboga Airport', 'Ankara', 'Turkey', 10, 2400, 6000, false) ")
+         "(date,arrival, plane_id, dep_airport_name, dep_city_name, dep_country, arr_airport_name, arr_city_name, arr_country, duration, econ_price, business_price, landed)  "
+         "values('2016-08-05 14:00:00', '2016-08-05 14:00:00',2,  'Ankara Esenboga Airport', 'Ankara', 'Turkey', 'London City Airport', 'London', 'England', 5, 2400, 6000, false) ")
 data.append(
          "insert into flight "
-         "(date, plane_id, dep_airport_name, dep_city_name, dep_country, arr_airport_name, arr_city_name, arr_country, duration, econ_price, business_price, landed)  "
-         "values('2016-08-05 14:00:00', 5, 'Ankara Esenboga Airport', 'Ankara', 'Turkey', 'London City Airport', 'London', 'England', 5, 2400, 6000, false) ")
+         "(date, arrival,plane_id, dep_airport_name, dep_city_name, dep_country, arr_airport_name, arr_city_name, arr_country, duration, econ_price, business_price, landed)  "
+         "values('2016-08-05 14:00:00','2016-08-05 14:00:00',1,  'Ankara Esenboga Airport', 'Ankara', 'Turkey', 'Cape Town International Airport', 'Cape Town', 'South Africa', 9, 2400, 6000, false) ")
 data.append(
          "insert into flight "
-         "(date, plane_id, dep_airport_name, dep_city_name, dep_country, arr_airport_name, arr_city_name, arr_country, duration, econ_price, business_price, landed)  "
-         "values('2016-08-05 14:00:00', 6, 'Ankara Esenboga Airport', 'Ankara', 'Turkey', 'Cape Town International Airport', 'Cape Town', 'South Africa', 9, 2400, 6000, false) ")
+         "(date, arrival, plane_id, dep_airport_name, dep_city_name, dep_country, arr_airport_name, arr_city_name, arr_country, duration, econ_price, business_price, landed)  "
+         "values('2016-08-01 13:00:00','2016-10-01 13:00:00', 2, 'Heathrow Airport', 'London', 'England', 'Sabiha Gokcen International Airport', 'Istanbul', 'Turkey', 5, 1600, 4000, false) ")
 data.append(
          "insert into flight "
-         "(date, plane_id, dep_airport_name, dep_city_name, dep_country, arr_airport_name, arr_city_name, arr_country, duration, econ_price, business_price, landed)  "
-         "values('2016-08-01 13:00:00', 7, 'Heathrow Airport', 'London', 'England', 'Sabiha Gokcen International Airport', 'Istanbul', 'Turkey', 5, 1600, 4000, false) ")
+         "(date, arrival, plane_id, dep_airport_name, dep_city_name, dep_country, arr_airport_name, arr_city_name, arr_country, duration, econ_price, business_price, landed)  "
+         "values('2016-09-01 13:00:00','2016-10-01 13:00:00',1,'Sabiha Gokcen International Airport', 'Istanbul', 'Turkey', 'Beijing Nanyuan Airport', 'Beijing', 'China', 8, 1200, 3000, false) ")
 data.append(
          "insert into flight "
-         "(date, plane_id, dep_airport_name, dep_city_name, dep_country, arr_airport_name, arr_city_name, arr_country, duration, econ_price, business_price, landed)  "
-         "values('2016-09-01 13:00:00', 8, 'Sabiha Gokcen International Airport', 'Istanbul', 'Turkey', 'Beijing Nanyuan Airport', 'Beijing', 'China', 8, 1200, 3000, false) ")
+         "(date, arrival, plane_id, dep_airport_name, dep_city_name, dep_country, arr_airport_name, arr_city_name, arr_country, duration, econ_price, business_price, landed)  "
+         "values('2016-10-01 13:00:00', '2016-10-01 13:00:00', 2, 'Beijing Nanyuan Airport', 'Beijing', 'China', 'Haneda Airport', 'Tokyo', 'Japan', 2.5, 1000, 2500, false) ")
 data.append(
          "insert into flight "
-         "(date, plane_id, dep_airport_name, dep_city_name, dep_country, arr_airport_name, arr_city_name, arr_country, duration, econ_price, business_price, landed)  "
-         "values('2016-10-01 13:00:00', 9, 'Beijing Nanyuan Airport', 'Beijing', 'China', 'Haneda Airport', 'Tokyo', 'Japan', 2.5, 1000, 2500, false) ")
-data.append(
-         "insert into flight "
-         "(date, plane_id, dep_airport_name, dep_city_name, dep_country, arr_airport_name, arr_city_name, arr_country, duration, econ_price, business_price, landed)  "
-         "values('2016-03-01 13:00:00', 10, 'Haneda Airport', 'Tokyo', 'Japan', 'Cairo International Airport', 'Cairo', 'Egypt', 16, 1600, 4000, true) "
+         "(date, arrival, plane_id, dep_airport_name, dep_city_name, dep_country, arr_airport_name, arr_city_name, arr_country, duration, econ_price, business_price, landed)  "
+         "values('2016-03-01 13:00:00', '2016-03-01 13:00:00',1,'Haneda Airport', 'Tokyo', 'Japan', 'Cairo International Airport', 'Cairo', 'Egypt', 16, 1600, 4000, true) "
 )
 
 
@@ -1557,6 +1507,7 @@ data.append(
          "(flight_id, pass_id, staff_id, seat_no, luggage, price) "
          "values(3, 6, 22, 2, 3, 40); ")
 
+i = 0
 for sql in data:
     try:
         cursor.execute(sql)
@@ -1565,7 +1516,8 @@ for sql in data:
         if err.errno == errorcode.ER_TABLE_EXISTS_ERROR:
             print( "already exists. ")
         else:
-            print(err.msg)
+            print("SATIR: {} ERR: {} SQL: {}".format(i, err, sql))
+    i += 1
 
 conn.commit()
 
@@ -1576,12 +1528,12 @@ trigger.append("create procedure insert_ticket_trigger(new_price numeric(6,2), n
                "update passenger set expenditure = expenditure + new_price where pass_id = new_pass_id; END")
 
 trigger.append("create procedure update_flight_trigger(new_date DATETIME, new_duration numeric(5,2), new_id int, new_landed binary) "
-               "BEGIN update flight_arrival set arrival = new_date + new_duration;"
+               "BEGIN"
                " delete from flight_att where flight_id = new_id and new_landed = 1;"
                " delete from flight_pilot where flight_id = new_id and new_landed = 1; END")
 
-#trigger.append( "create trigger update_flight after update on flight for each row  "
-#                "call insert_flight_trigger(new.date, new.duration, new.flight_id, new.landed) ")
+trigger.append( "create trigger update_flight after update on flight for each row  "
+                "call update_flight_trigger(new.date, new.duration, new.flight_id, new.landed) ")
 
 trigger.append( "create trigger luggage_expenditure after update on ticket for each row begin  "
                 "if old.luggage > 20 then update passenger set expenditure = expenditure +  "
@@ -1597,10 +1549,10 @@ trigger.append( "create trigger delete_pass_history after delete on ticket  "
                 "and pass_id = old.pass_id ")
 
 trigger.append( "create trigger add_att_history after insert on flight_att for each row  "
-                "insert into pers_history values(new.att_id, new.flight_id) ")
+                "insert into pers_history values(new.flight_id, new.att_id) ")
 
 trigger.append( "create trigger add_pilot_history after insert on flight_pilot for each row  "
-                "insert into pers_history values(new.pilot_id, new.flight_id) ")
+                "insert into pers_history values(new.flight_id, new.pilot_id) ")
 
 trigger.append("create procedure delete_person_trigger(old_person_id int) "
                "BEGIN delete from person_phone where person_id = old_person_id;"
@@ -1624,6 +1576,7 @@ for sql in trigger:
             print( "already exists. ")
         else:
             print(err.msg)
+conn.commit()
 
 index = []
 index.append("CREATE INDEX email_index USING BTREE ON person_email(email)")
